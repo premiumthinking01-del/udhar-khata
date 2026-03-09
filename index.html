@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="hi" data-theme="dark">
 <head>
@@ -595,10 +596,9 @@
     <div class="logo">💰 Udhar Khata</div>
     <div class="subtitle" id="ownerInfoDisplay">Apna Hisaab Saaf Rakho</div>
     <div class="header-btns">
-      <button class="btn-header" onclick="cloudSave(true)" title="Abhi cloud pe save karo">☁️ Sync</button>
-      <button class="btn-header" onclick="openCloudSetup()" id="cloudSetupBtn" style="color:var(--muted)">⚙️ Cloud</button>
+      <button class="btn-header" onclick="cloudSave(true)" id="cloudSyncBtn" title="Abhi cloud pe save karo" style="display:none">☁️ Sync</button>
+      <button class="btn-header" onclick="openCloudSetup()" id="cloudSetupBtn" style="display:none">⚙️ Cloud</button>
       <button class="btn-header" onclick="toggleTheme()"><span id="themeIcon">☀️</span> <span id="themeText">Light Mode</span></button>
-      <button class="btn-header" onclick="toggleLang()" id="langBtn">🌐 English</button>
       <button class="btn-header" onclick="openCalendar()">📅 Calendar</button>
       <button class="btn-header" onclick="openSummary()">📈 Summary</button>
       <button class="btn-header" onclick="openTopBorrowers()">🏆 Top</button>
@@ -611,7 +611,7 @@
       <button class="btn-header" onclick="lockApp()">🔒 Lock</button>
       <button class="btn-header" onclick="openLogout()" style="color:#f85149;border-color:rgba(248,81,73,0.3)">🚪 Logout</button>
     </div>
-    <div style="margin-top:10px;font-size:0.72rem;font-weight:600;text-align:center" id="syncStatus">☁️ Cloud Sync ON</div>
+    <div style="margin-top:10px;font-size:0.72rem;font-weight:600;text-align:center;display:none" id="syncStatus">☁️ Cloud Sync ON</div>
   </header>
 
   <div class="search-bar">
@@ -2792,10 +2792,18 @@
   }
 
   function updateCloudBtn(active) {
-    var btn = document.getElementById('cloudSetupBtn');
-    if (!btn) return;
-    btn.textContent = active ? '☁️ Cloud ✅' : '⚙️ Cloud';
-    btn.style.color = active ? 'var(--green)' : 'var(--muted)';
+    var setupBtn = document.getElementById('cloudSetupBtn');
+    var syncBtn  = document.getElementById('cloudSyncBtn');
+    var statusEl = document.getElementById('syncStatus');
+    if (active) {
+      if (setupBtn) { setupBtn.style.display = ''; setupBtn.textContent = '☁️ Cloud ✅'; setupBtn.style.color = 'var(--green)'; }
+      if (syncBtn)  { syncBtn.style.display = ''; }
+      if (statusEl) { statusEl.style.display = ''; }
+    } else {
+      if (setupBtn) { setupBtn.style.display = 'none'; }
+      if (syncBtn)  { syncBtn.style.display = 'none'; }
+      if (statusEl) { statusEl.style.display = 'none'; }
+    }
   }
 
   loadTheme();
