@@ -2169,23 +2169,26 @@
     document.getElementById('logoutOverlay').classList.remove('show');
   }
   function doLogout() {
-    localStorage.removeItem(STORAGE_KEY);
-    localStorage.removeItem(BIN_KEY);
-    localStorage.removeItem(PW_KEY);
-    localStorage.removeItem(PROFILE_KEY);
-    localStorage.removeItem('udharKhata_jkey');
-    localStorage.removeItem('udharKhata_jid');
+    try { localStorage.removeItem(STORAGE_KEY); } catch(e){}
+    try { localStorage.removeItem(BIN_KEY); } catch(e){}
+    try { localStorage.removeItem(PW_KEY); } catch(e){}
+    try { localStorage.removeItem(PROFILE_KEY); } catch(e){}
+    try { localStorage.removeItem('udharKhata_jkey'); } catch(e){}
+    try { localStorage.removeItem('udharKhata_jid'); } catch(e){}
     JBIN_KEY = ''; JBIN_ID = ''; JBIN_URL = '';
     loans = []; bin = [];
     closeLogout();
-    // Lock screen pe wapas jaao — wahan teenon options hain
-    document.getElementById('welcomeScreen').classList.add('hidden');
-    document.getElementById('lockScreen').classList.remove('hidden');
-    document.getElementById('lockInput').value = '';
-    document.getElementById('lockOwnerLabel').textContent = 'Password enter karke open karo';
-    document.getElementById('lockHint').textContent = 'Demo password: 1234';
+    var ws = document.getElementById('welcomeScreen');
+    var ls = document.getElementById('lockScreen');
+    var li = document.getElementById('lockInput');
+    var lol = document.getElementById('lockOwnerLabel');
+    var lh = document.getElementById('lockHint');
+    if (ws) ws.classList.add('hidden');
+    if (ls) ls.classList.remove('hidden');
+    if (li) li.value = '';
+    if (lol) lol.textContent = 'Password enter karke open karo';
+    if (lh) lh.textContent = 'Demo password: 1234';
     updateCloudBtn(false);
-    showSyncStatus('', '');
     showToast('✅ Logout ho gaye!');
   }
   function logoutWithBackup() {
