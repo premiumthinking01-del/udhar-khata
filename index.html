@@ -1588,26 +1588,14 @@
 
   (function() {
     var profile = getProfile();
-    var rawData = localStorage.getItem(STORAGE_KEY);
-
     if (!profile) {
       // Bilkul pehli baar — welcome screen dikhao
       document.getElementById('lockScreen').classList.add('hidden');
       document.getElementById('welcomeScreen').classList.remove('hidden');
       showStep(1);
-    } else if (rawData === null) {
-      // Profile hai lekin localStorage ka data hi nahi — browser clear hua
-      // Lock screen pe hi raho, unlock hone ke baad restore offer karo
-      var _orig = window.checkPassword;
-      window.checkPassword = function() {
-        _orig();
-        // Sirf tab restore dikhao jab lockScreen hidden ho gaya ho
-        if (document.getElementById('lockScreen').classList.contains('hidden')) {
-          showRestoreScreen();
-        }
-      };
     }
-    // Else: data hai (chahe loans 0 ho ya zyada) — normal lock screen
+    // Sab cases mein: lockScreen dikhega, password daalo, app khulega — simple!
+    // Restore karna ho toh: Logout → Welcome Screen → "Backup Se Restore"
   })();
 </script>
 </body>
