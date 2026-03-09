@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="hi" data-theme="dark">
 <head>
@@ -597,7 +596,7 @@
     <div class="subtitle" id="ownerInfoDisplay">Apna Hisaab Saaf Rakho</div>
     <div class="header-btns">
       <button class="btn-header" onclick="cloudSave(true)" id="cloudSyncBtn" title="Abhi cloud pe save karo" style="display:none">☁️ Sync</button>
-      <button class="btn-header" onclick="openCloudSetup()" id="cloudSetupBtn" style="display:none">⚙️ Cloud</button>
+      <button class="btn-header" onclick="openCloudSetup()" id="cloudSetupBtn">⚙️ Cloud</button>
       <button class="btn-header" onclick="toggleTheme()"><span id="themeIcon">☀️</span> <span id="themeText">Light Mode</span></button>
       <button class="btn-header" onclick="openCalendar()">📅 Calendar</button>
       <button class="btn-header" onclick="openSummary()">📈 Summary</button>
@@ -2796,11 +2795,11 @@
     var syncBtn  = document.getElementById('cloudSyncBtn');
     var statusEl = document.getElementById('syncStatus');
     if (active) {
-      if (setupBtn) { setupBtn.style.display = ''; setupBtn.textContent = '☁️ Cloud ✅'; setupBtn.style.color = 'var(--green)'; }
+      if (setupBtn) { setupBtn.textContent = '☁️ Cloud ✅'; setupBtn.style.color = 'var(--green)'; }
       if (syncBtn)  { syncBtn.style.display = ''; }
       if (statusEl) { statusEl.style.display = ''; }
     } else {
-      if (setupBtn) { setupBtn.style.display = 'none'; }
+      if (setupBtn) { setupBtn.textContent = '⚙️ Cloud'; setupBtn.style.color = ''; }
       if (syncBtn)  { syncBtn.style.display = 'none'; }
       if (statusEl) { statusEl.style.display = 'none'; }
     }
