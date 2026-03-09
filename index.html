@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="hi" data-theme="dark">
 <head>
@@ -2508,35 +2509,51 @@
   function saveCloudConfig() {
     var key = (document.getElementById('cloudApiKey').value || '').trim();
     var id  = (document.getElementById('cloudBinId').value || '').trim();
-    if (!key || !key.startsWith('$2a$')) { showCloudMsg('❌ API Key sahi nahi hai! $2a$ se shuru honi chahiye.', 'var(--red)'); return; }
-    if (!id || id.length < 10) { showCloudMsg('❌ Bin ID sahi nahi hai!', 'var(--red)'); return; }
+    if (!key) { showCloudMsg('❌ API Key daalo!', 'var(--red)'); return; }
+    if (!id)  { showCloudMsg('❌ Bin ID daalo!', 'var(--red)'); return; }
 
-    // Test karo pehle
-    showCloudMsg('🔄 Testing connection...', 'var(--accent)');
-    fetch('https://api.jsonbin.io/v3/b/' + id + '/latest', {
-      headers: { 'X-Master-Key': key }
+    showCloudMsg('🔄 Connecting...', 'var(--accent)');
+
+    // Test by writing a small ping to the bin
+    fetch('https://api.jsonbin.io/v3/b/' + id, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Master-Key': key,
+        'X-Bin-Private': 'true'
+      },
+      body: JSON.stringify({
+        loans: loans,
+        bin: bin,
+        profile: getProfile(),
+        savedAt: new Date().toLocaleString('en-IN'),
+        ping: true
+      })
     })
     .then(function(r) {
+      if (r.status === 401) throw new Error('401: API Key galat hai!');
+      if (r.status === 404) throw new Error('404: Bin ID nahi mila!');
+      if (r.status === 403) throw new Error('403: Access denied!');
       if (!r.ok) throw new Error('HTTP ' + r.status);
       return r.json();
     })
     .then(function() {
       localStorage.setItem('udharKhata_jkey', key);
       localStorage.setItem('udharKhata_jid', id);
-      JBIN_KEY = key; JBIN_ID = id;
+      JBIN_KEY = key;
+      JBIN_ID  = id;
       JBIN_URL = 'https://api.jsonbin.io/v3/b/' + id;
       updateCloudBtn(true);
-      showCloudMsg('✅ Connected! Cloud sync active ho gaya!', 'var(--green)');
+      showSyncStatus('☁️ Cloud Sync ON', 'var(--green)');
+      showCloudMsg('✅ Connected! Data bhi sync ho gaya!', 'var(--green)');
       setTimeout(function() {
         document.getElementById('cloudConfigured').style.display = 'block';
         document.getElementById('cloudSetupForm').style.display = 'none';
         document.getElementById('configuredBinId').textContent = id;
-        cloudSave(false);
-        showSyncStatus('☁️ Cloud Sync ON', 'var(--green)');
-      }, 1200);
+      }, 1000);
     })
-    .catch(function() {
-      showCloudMsg('❌ Connection fail! API Key ya Bin ID galat hai.', 'var(--red)');
+    .catch(function(err) {
+      showCloudMsg('❌ ' + (err.message || 'Connection fail! Keys dobara check karo.'), 'var(--red)');
     });
   }
 
