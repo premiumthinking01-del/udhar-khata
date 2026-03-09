@@ -476,6 +476,7 @@
       <button class="btn-header" onclick="openBin()">🗑️ Bin <span id="binBadge"></span></button>
       <button class="btn-header" onclick="downloadBackup()">💾 Backup</button>
       <button class="btn-header" onclick="lockApp()">🔒 Lock</button>
+      <button class="btn-header" onclick="openLogout()" style="color:#f85149;border-color:rgba(248,81,73,0.3)">🚪 Logout</button>
     </div>
   </header>
 
@@ -597,6 +598,50 @@
     <input type="password" id="confirmPw" placeholder="Naya Password Dobara Daalo" inputmode="numeric" maxlength="10" />
     <button class="btn-save-pw" onclick="changePassword()">✅ Save Password</button>
     <button class="btn-close-set" onclick="document.getElementById('settingsOverlay').classList.remove('show')">↩ Wapas</button>
+  </div>
+</div>
+
+<!-- ===== LOGOUT DIALOG ===== -->
+<div class="confirm-overlay" id="logoutOverlay" style="z-index:1003">
+  <div class="confirm-box" style="text-align:left;max-width:420px">
+    <div style="text-align:center;margin-bottom:16px">
+      <div style="font-size:2.5rem">🚪</div>
+      <div style="font-size:1.1rem;font-weight:900;color:var(--text);margin-top:8px">Logout Karna Chahte Ho?</div>
+      <div style="font-size:0.82rem;color:var(--muted);margin-top:5px;line-height:1.6">
+        Logout karne pe aapka saara data <b>is device se</b> hata diya jaayega.<br>
+        Wapas aane ke liye backup file zaroori hogi!
+      </div>
+    </div>
+
+    <div style="height:1px;background:var(--border);margin:16px 0"></div>
+
+    <!-- Option 1: Backup lekar logout -->
+    <button onclick="logoutWithBackup()" style="display:flex;align-items:center;gap:14px;width:100%;background:linear-gradient(135deg,rgba(63,185,80,0.1),rgba(46,160,67,0.06));border:1.5px solid rgba(63,185,80,0.35);border-radius:14px;padding:16px;cursor:pointer;font-family:inherit;margin-bottom:10px;text-align:left">
+      <div style="font-size:2rem;flex-shrink:0">💾</div>
+      <div>
+        <div style="font-weight:800;color:var(--green);font-size:0.95rem">Backup Lekar Logout Karo</div>
+        <div style="font-size:0.76rem;color:var(--muted);margin-top:3px;line-height:1.5">
+          Pehle data ka backup download hoga —<br>
+          phir safely logout ho jaayega ✅
+        </div>
+      </div>
+    </button>
+
+    <!-- Option 2: Bina backup logout -->
+    <button onclick="logoutWithoutBackup()" style="display:flex;align-items:center;gap:14px;width:100%;background:rgba(248,81,73,0.07);border:1.5px solid rgba(248,81,73,0.25);border-radius:14px;padding:16px;cursor:pointer;font-family:inherit;margin-bottom:14px;text-align:left">
+      <div style="font-size:2rem;flex-shrink:0">⚠️</div>
+      <div>
+        <div style="font-weight:800;color:var(--red);font-size:0.95rem">Bina Backup Logout Karo</div>
+        <div style="font-size:0.76rem;color:var(--muted);margin-top:3px;line-height:1.5">
+          Saara data hamesha ke liye delete ho jaayega —<br>
+          wapas laana mumkin nahi hoga ❌
+        </div>
+      </div>
+    </button>
+
+    <button onclick="closeLogout()" style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px;font-family:inherit;font-size:0.9rem;font-weight:700;color:var(--muted);cursor:pointer">
+      ↩ Wapas Jaao
+    </button>
   </div>
 </div>
 
@@ -1499,7 +1544,41 @@
     });
   }
 
-  // ===== SMART INIT =====
+  // ===== LOGOUT =====
+  function openLogout() {
+    document.getElementById('logoutOverlay').classList.add('show');
+  }
+  function closeLogout() {
+    document.getElementById('logoutOverlay').classList.remove('show');
+  }
+  function doLogout() {
+    // Clear all data
+    localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(BIN_KEY);
+    localStorage.removeItem(PW_KEY);
+    localStorage.removeItem(THEME_KEY);
+    localStorage.removeItem(PROFILE_KEY);
+    loans = []; bin = [];
+    // Show welcome screen fresh
+    closeLogout();
+    document.getElementById('lockScreen').classList.add('hidden');
+    document.getElementById('welcomeScreen').classList.remove('hidden');
+    showStep(1);
+    showToast('✅ Logout ho gaye! Data clear ho gaya.');
+  }
+  function logoutWithBackup() {
+    // Pehle backup download, phir logout
+    downloadBackup();
+    setTimeout(function() {
+      doLogout();
+    }, 1000);
+  }
+  function logoutWithoutBackup() {
+    // Confirm maango — double safety
+    if (confirm('⚠️ Pakka? Saara data hamesha ke liye delete ho jaayega — backup nahi hoga!')) {
+      doLogout();
+    }
+  }
   loadTheme();
   loadData();
   renderAll();
