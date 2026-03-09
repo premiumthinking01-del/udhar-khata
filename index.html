@@ -1587,25 +1587,27 @@
   document.getElementById('startDate').valueAsDate = new Date();
 
   (function() {
-    var profile  = getProfile();
-    var hasData  = !!localStorage.getItem(STORAGE_KEY);
+    var profile = getProfile();
+    var rawData = localStorage.getItem(STORAGE_KEY);
 
     if (!profile) {
-      // Bilkul pehli baar — welcome screen, step 1
+      // Bilkul pehli baar — welcome screen dikhao
       document.getElementById('lockScreen').classList.add('hidden');
       document.getElementById('welcomeScreen').classList.remove('hidden');
       showStep(1);
-    } else if (!hasData || loans.length === 0) {
-      // Profile hai lekin data nahi — data clear hua
-      // Normal lock screen dikhao, after unlock restore offer karein
+    } else if (rawData === null) {
+      // Profile hai lekin localStorage ka data hi nahi — browser clear hua
+      // Lock screen pe hi raho, unlock hone ke baad restore offer karo
       var _orig = window.checkPassword;
       window.checkPassword = function() {
         _orig();
-        if (!document.getElementById('lockScreen').classList.contains('hidden')) return;
-        if (loans.length === 0) showRestoreScreen();
+        // Sirf tab restore dikhao jab lockScreen hidden ho gaya ho
+        if (document.getElementById('lockScreen').classList.contains('hidden')) {
+          showRestoreScreen();
+        }
       };
     }
-    // Else: sab theek hai — lockScreen already visible
+    // Else: data hai (chahe loans 0 ho ya zyada) — normal lock screen
   })();
 </script>
 </body>
