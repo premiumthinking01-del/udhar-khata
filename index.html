@@ -586,9 +586,16 @@
     <input type="password" class="lock-input" id="lockInput" placeholder="••••" maxlength="10"
       onkeydown="if(event.key==='Enter') checkPassword()" inputmode="numeric" />
     <button class="btn-unlock" onclick="checkPassword()">🔓 Open Karo</button>
-    <div class="lock-hint" id="lockHint">Default password: 1234</div>
+    <div class="lock-hint" id="lockHint">Demo password: 1234</div>
 
     <div style="margin-top:24px;border-top:1px solid var(--border);padding-top:18px;display:flex;flex-direction:column;gap:10px">
+      <button onclick="goToWelcome('fresh')" style="background:linear-gradient(135deg,rgba(240,165,0,0.12),rgba(255,107,53,0.08));border:1.5px solid rgba(240,165,0,0.4);border-radius:12px;padding:11px 16px;color:var(--text);font-family:inherit;font-size:0.85rem;font-weight:700;cursor:pointer;width:100%;text-align:left;display:flex;align-items:center;gap:10px">
+        <span style="font-size:1.3rem">🆕</span>
+        <div>
+          <div style="color:var(--accent)">Naya Shuru Karo</div>
+          <div style="font-size:0.72rem;font-weight:500;color:var(--muted);margin-top:2px">Pehli baar use kar rahe hain — naam aur password set karein</div>
+        </div>
+      </button>
       <button onclick="goToWelcome('cloud')" style="background:rgba(63,185,80,0.08);border:1px solid rgba(63,185,80,0.25);border-radius:12px;padding:11px 16px;color:var(--green);font-family:inherit;font-size:0.85rem;font-weight:700;cursor:pointer;width:100%;text-align:left;display:flex;align-items:center;gap:10px">
         <span style="font-size:1.3rem">☁️</span>
         <div>
@@ -602,9 +609,6 @@
           <div>Backup File Se Restore Karo</div>
           <div style="font-size:0.72rem;font-weight:500;color:var(--muted);margin-top:2px">.json backup file se data wapas lao</div>
         </div>
-      </button>
-      <button onclick="goToWelcome('fresh')" style="background:none;border:none;color:var(--muted);font-family:inherit;font-size:0.78rem;cursor:pointer;padding:4px">
-        🆕 Naya account shuru karo
       </button>
     </div>
   </div>
@@ -2165,19 +2169,24 @@
     document.getElementById('logoutOverlay').classList.remove('show');
   }
   function doLogout() {
-    // Clear all data
     localStorage.removeItem(STORAGE_KEY);
     localStorage.removeItem(BIN_KEY);
     localStorage.removeItem(PW_KEY);
-    localStorage.removeItem(THEME_KEY);
     localStorage.removeItem(PROFILE_KEY);
+    localStorage.removeItem('udharKhata_jkey');
+    localStorage.removeItem('udharKhata_jid');
+    JBIN_KEY = ''; JBIN_ID = ''; JBIN_URL = '';
     loans = []; bin = [];
-    // Show welcome screen fresh
     closeLogout();
-    document.getElementById('lockScreen').classList.add('hidden');
-    document.getElementById('welcomeScreen').classList.remove('hidden');
-    showStep(1);
-    showToast('✅ Logout ho gaye! Data clear ho gaya.');
+    // Lock screen pe wapas jaao — wahan teenon options hain
+    document.getElementById('welcomeScreen').classList.add('hidden');
+    document.getElementById('lockScreen').classList.remove('hidden');
+    document.getElementById('lockInput').value = '';
+    document.getElementById('lockOwnerLabel').textContent = 'Password enter karke open karo';
+    document.getElementById('lockHint').textContent = 'Demo password: 1234';
+    updateCloudBtn(false);
+    showSyncStatus('', '');
+    showToast('✅ Logout ho gaye!');
   }
   function logoutWithBackup() {
     // Pehle backup download, phir logout
