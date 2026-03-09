@@ -587,6 +587,26 @@
       onkeydown="if(event.key==='Enter') checkPassword()" inputmode="numeric" />
     <button class="btn-unlock" onclick="checkPassword()">🔓 Open Karo</button>
     <div class="lock-hint" id="lockHint">Default password: 1234</div>
+
+    <div style="margin-top:24px;border-top:1px solid var(--border);padding-top:18px;display:flex;flex-direction:column;gap:10px">
+      <button onclick="goToWelcome('cloud')" style="background:rgba(63,185,80,0.08);border:1px solid rgba(63,185,80,0.25);border-radius:12px;padding:11px 16px;color:var(--green);font-family:inherit;font-size:0.85rem;font-weight:700;cursor:pointer;width:100%;text-align:left;display:flex;align-items:center;gap:10px">
+        <span style="font-size:1.3rem">☁️</span>
+        <div>
+          <div>Doosre Device Pe Data Hai?</div>
+          <div style="font-size:0.72rem;font-weight:500;color:var(--muted);margin-top:2px">Cloud se restore karo — API Key + Bin ID se</div>
+        </div>
+      </button>
+      <button onclick="goToWelcome('restore')" style="background:rgba(240,165,0,0.06);border:1px solid rgba(240,165,0,0.2);border-radius:12px;padding:11px 16px;color:var(--accent);font-family:inherit;font-size:0.85rem;font-weight:700;cursor:pointer;width:100%;text-align:left;display:flex;align-items:center;gap:10px">
+        <span style="font-size:1.3rem">♻️</span>
+        <div>
+          <div>Backup File Se Restore Karo</div>
+          <div style="font-size:0.72rem;font-weight:500;color:var(--muted);margin-top:2px">.json backup file se data wapas lao</div>
+        </div>
+      </button>
+      <button onclick="goToWelcome('fresh')" style="background:none;border:none;color:var(--muted);font-family:inherit;font-size:0.78rem;cursor:pointer;padding:4px">
+        🆕 Naya account shuru karo
+      </button>
+    </div>
   </div>
 </div>
 
@@ -1200,6 +1220,14 @@
     document.getElementById('welcomeScreen').classList.add('hidden');
     updateOwnerDisplay();
     showToast('🎉 Welcome, ' + name + '! Shuru karo!');
+  }
+
+  function goToWelcome(panel) {
+    document.getElementById('lockScreen').classList.add('hidden');
+    document.getElementById('welcomeScreen').classList.remove('hidden');
+    if (panel === 'cloud')   showStep(4);
+    else if (panel === 'restore') showStep(3);
+    else showStep(1);
   }
 
   function showRestoreScreen() {
