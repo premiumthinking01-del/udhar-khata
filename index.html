@@ -496,7 +496,31 @@
 
         <label class="setup-label">🔑 Password Set Karein</label>
         <input class="setup-input" id="setupPassword" type="password" placeholder="4-10 digit  (khaali = default 1234)" inputmode="numeric" maxlength="10" style="margin-bottom:6px" />
-        <div style="font-size:0.71rem;color:var(--muted);margin-bottom:16px">💡 Baad mein Settings se badal sakte hain</div>
+        <div style="font-size:0.71rem;color:var(--muted);margin-bottom:20px">💡 Baad mein Settings se badal sakte hain</div>
+
+        <!-- Cloud sync question -->
+        <div style="background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:14px;margin-bottom:16px">
+          <div style="font-size:0.82rem;font-weight:800;color:var(--text);margin-bottom:10px">☁️ Kya aapke paas JSONBin API Key hai?</div>
+          <div style="display:flex;gap:8px">
+            <button id="cloudYesBtn" onclick="selectCloudOption(true)" style="flex:1;padding:10px;border-radius:10px;border:1.5px solid var(--border);background:var(--card);color:var(--muted);font-family:inherit;font-size:0.85rem;font-weight:700;cursor:pointer">✅ Haan hai</button>
+            <button id="cloudNoBtn"  onclick="selectCloudOption(false)" style="flex:1;padding:10px;border-radius:10px;border:1.5px solid var(--border);background:var(--card);color:var(--muted);font-family:inherit;font-size:0.85rem;font-weight:700;cursor:pointer">❌ Nahi hai</button>
+          </div>
+
+          <!-- Cloud fields — shown only if YES -->
+          <div id="setupCloudFields" style="display:none;margin-top:14px">
+            <div style="font-size:0.71rem;color:var(--muted);font-weight:700;text-transform:uppercase;margin-bottom:5px">API Key (X-Access-Key)</div>
+            <input type="password" id="setupApiKey" placeholder="$2a$10$xxxx..." style="width:100%;background:var(--card);border:1.5px solid var(--border);border-radius:9px;padding:10px 12px;color:var(--text);font-family:inherit;font-size:0.85rem;outline:none;margin-bottom:10px;box-sizing:border-box" />
+            <div style="font-size:0.71rem;color:var(--muted);font-weight:700;text-transform:uppercase;margin-bottom:5px">Bin ID</div>
+            <input type="text" id="setupBinId" placeholder="65f3a2b1e3a578..." style="width:100%;background:var(--card);border:1.5px solid var(--border);border-radius:9px;padding:10px 12px;color:var(--text);font-family:inherit;font-size:0.85rem;outline:none;box-sizing:border-box" />
+            <div style="font-size:0.7rem;color:var(--green);margin-top:6px;font-weight:600">✅ Cloud sync automatically active ho jaayegi!</div>
+          </div>
+
+          <!-- No cloud info -->
+          <div id="setupNoCloudInfo" style="display:none;margin-top:10px;font-size:0.75rem;color:var(--muted);line-height:1.6">
+            💾 Theek hai! Manual backup system use hoga.<br>
+            <b style="color:var(--accent)">Backup</b> button se data save karte raho.
+          </div>
+        </div>
 
         <button class="btn-setup-primary" onclick="completeSetup()">🚀 Shuru Karein!</button>
       </div>
@@ -1116,6 +1140,36 @@
     document.querySelectorAll('.city-chip').forEach(function(c){ c.classList.remove('selected'); });
   }
 
+  var setupCloudChoice = null; // null=not chosen, true=yes, false=no
+
+  function selectCloudOption(hasCloud) {
+    setupCloudChoice = hasCloud;
+    var yesBtn = document.getElementById('cloudYesBtn');
+    var noBtn  = document.getElementById('cloudNoBtn');
+    var fields = document.getElementById('setupCloudFields');
+    var noInfo = document.getElementById('setupNoCloudInfo');
+
+    if (hasCloud) {
+      yesBtn.style.background = 'rgba(63,185,80,0.15)';
+      yesBtn.style.borderColor = 'rgba(63,185,80,0.5)';
+      yesBtn.style.color = 'var(--green)';
+      noBtn.style.background = 'var(--card)';
+      noBtn.style.borderColor = 'var(--border)';
+      noBtn.style.color = 'var(--muted)';
+      fields.style.display = 'block';
+      noInfo.style.display = 'none';
+    } else {
+      noBtn.style.background = 'rgba(240,165,0,0.1)';
+      noBtn.style.borderColor = 'rgba(240,165,0,0.4)';
+      noBtn.style.color = 'var(--accent)';
+      yesBtn.style.background = 'var(--card)';
+      yesBtn.style.borderColor = 'var(--border)';
+      yesBtn.style.color = 'var(--muted)';
+      fields.style.display = 'none';
+      noInfo.style.display = 'block';
+    }
+  }
+
   function completeSetup() {
     var name = document.getElementById('setupOwnerName').value.trim();
     var city = document.getElementById('setupCity').value.trim();
@@ -1124,6 +1178,26 @@
     if (!city) { showToast('❌ Shehar/location daalo!'); return; }
     saveProfile({ name: name, city: city, setupDate: today });
     if (pw && pw.length >= 4) localStorage.setItem(PW_KEY, pw);
+
+    // Cloud setup — if user chose YES and filled keys
+    if (setupCloudChoice === true) {
+      var apiKey = (document.getElementById('setupApiKey').value || '').trim();
+      var binId  = (document.getElementById('setupBinId').value || '').trim();
+      if (apiKey && binId) {
+        localStorage.setItem('udharKhata_jkey', apiKey);
+        localStorage.setItem('udharKhata_jid', binId);
+        JBIN_KEY = apiKey; JBIN_ID = binId;
+        JBIN_URL = 'https://api.jsonbin.io/v3/b/' + binId;
+        updateCloudBtn(true);
+        showSyncStatus('☁️ Cloud Sync ON', 'var(--green)');
+      }
+    } else if (setupCloudChoice === false) {
+      // No cloud — hide sync button from header
+      var syncBtn = document.getElementById('cloudSetupBtn');
+      if (syncBtn) { syncBtn.style.display = 'none'; }
+      showSyncStatus('💾 Manual Backup Mode', 'var(--muted)');
+    }
+
     document.getElementById('welcomeScreen').classList.add('hidden');
     updateOwnerDisplay();
     showToast('🎉 Welcome, ' + name + '! Shuru karo!');
@@ -1748,15 +1822,15 @@
     if (search.length > 0) {
       var uniqueNames = [...new Set(filtered.map(function(l){ return l.name; }))];
       var label = uniqueNames.length === 1 ? '👤 ' + uniqueNames[0] : '🔍 "' + search + '"';
-      document.getElementById('labelTotal').textContent = '💼 ' + label + ' — Diya';
-      document.getElementById('labelReceived').textContent = '✅ ' + label + ' — Aaya';
-      document.getElementById('labelPending').textContent = '⏳ ' + label + ' — Baaki';
+      document.getElementById('labelTotal').textContent    = '💼 ' + label + ' — ' + T('Diya','Given');
+      document.getElementById('labelReceived').textContent = '✅ ' + label + ' — ' + T('Aaya','Received');
+      document.getElementById('labelPending').textContent  = '⏳ ' + label + ' — ' + T('Baaki','Pending');
       banner.style.display = 'block';
-      banner.textContent = '🔍 "' + search + '" ke liye ' + filtered.length + ' loan' + (filtered.length !== 1 ? 's' : '') + ' mila — Sirf inka hisaab dikh raha hai';
+      banner.textContent = '🔍 "' + search + '" ' + T('ke liye','for') + ' ' + filtered.length + ' loan' + (filtered.length !== 1 ? 's' : '') + ' ' + T('mila — Sirf inka hisaab dikh raha hai','found — Showing only their records');
     } else {
-      document.getElementById('labelTotal').textContent = '💼 Total Diya';
-      document.getElementById('labelReceived').textContent = '✅ Wapas Aaya';
-      document.getElementById('labelPending').textContent = '⏳ Baaki Hai';
+      document.getElementById('labelTotal').textContent    = '💼 ' + T('Total Diya','Total Given');
+      document.getElementById('labelReceived').textContent = '✅ ' + T('Wapas Aaya','Received Back');
+      document.getElementById('labelPending').textContent  = '⏳ ' + T('Baaki Hai','Remaining');
       banner.style.display = 'none';
     }
   }
@@ -1782,11 +1856,11 @@
     document.getElementById('loansCount').textContent = filtered.length + ' loan' + (filtered.length!==1?'s':'');
 
     if (!loans.length) {
-      list.innerHTML = '<div class="empty-state"><div class="icon">📭</div><p>Koi loan nahi hai. Upar se add karo!</p></div>';
+      list.innerHTML = '<div class="empty-state"><div class="icon">📭</div><p>'+T('Koi loan nahi hai. Upar se add karo!','No loans yet. Add one above!')+'</p></div>';
       return;
     }
     if (!filtered.length) {
-      list.innerHTML = '<div class="empty-state"><div class="icon">🔍</div><p>Koi result nahi mila.</p></div>';
+      list.innerHTML = '<div class="empty-state"><div class="icon">🔍</div><p>'+T('Koi result nahi mila.','No results found.')+'</p></div>';
       return;
     }
 
@@ -1800,7 +1874,9 @@
 
       var cardCls = done ? 'fully-paid' : (overdue ? 'has-overdue' : '');
       var badgeCls = done ? 'badge-done' : (overdue ? 'badge-overdue' : 'badge-active');
-      var badgeTxt = done ? '✅ Cleared' : (overdue ? '🔴 Overdue' : '⏳ Active');
+      var badgeTxt = done
+        ? T('✅ Cleared','✅ Cleared')
+        : (overdue ? T('🔴 Overdue','🔴 Overdue') : T('⏳ Active','⏳ Active'));
 
       var emiRows = loan.emis.map(function(e,i) {
         var od = !e.paid && e.dueDate < today;
@@ -1809,28 +1885,28 @@
           '<div style="font-weight:600">'+fmt(e.amount)+'</div>' +
           '<div style="font-size:0.76rem">'+fmtDate(e.dueDate)+(od?'<span class="overdue-badge">OVERDUE</span>':'')+'</div>' +
           '<div>'+(e.paid
-            ? '<button class="btn-unpay" onclick="markUnpaid('+loan.id+','+i+')">✅ PAID</button>'
-            : '<button class="btn-pay" onclick="markPaid('+loan.id+','+i+')">❌ UNPAID</button>'
+            ? '<button class="btn-unpay" onclick="markUnpaid('+loan.id+','+i+')">✅ '+T('PAID','PAID')+'</button>'
+            : '<button class="btn-pay" onclick="markPaid('+loan.id+','+i+')">❌ '+T('UNPAID','UNPAID')+'</button>'
           )+'</div>' +
         '</div>';
       }).join('');
 
       var noteHtml = '<div class="notes-section">' +
         '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px">' +
-          '<div class="notes-display">'+(loan.note?'📝 '+esc(loan.note):'<span style="opacity:0.5">Koi note nahi</span>')+'</div>' +
-          '<button class="btn-note-toggle" onclick="toggleNoteEdit('+loan.id+')">'+(loan.showNoteEdit?'✕ Band':'✏️ Edit')+'</button>' +
+          '<div class="notes-display">'+(loan.note?'📝 '+esc(loan.note):'<span style="opacity:0.5">'+T('Koi note nahi','No note')+'</span>')+'</div>' +
+          '<button class="btn-note-toggle" onclick="toggleNoteEdit('+loan.id+')">'+(loan.showNoteEdit?'✕ '+T('Band','Close'):'✏️ '+T('Edit','Edit'))+'</button>' +
         '</div>' +
         '<textarea class="notes-edit-area '+(loan.showNoteEdit?'open':'')+'" id="noteEdit_'+loan.id+'">'+esc(loan.note||'')+'</textarea>' +
-        (loan.showNoteEdit?'<button class="btn-note-save" onclick="saveNote('+loan.id+')">💾 Save</button>':'') +
+        (loan.showNoteEdit?'<button class="btn-note-save" onclick="saveNote('+loan.id+')">💾 '+T('Save','Save')+'</button>':'') +
       '</div>';
 
       return '<div class="loan-card '+cardCls+'">' +
         '<div class="loan-header">' +
           '<div>' +
             '<div class="borrower-name">👤 '+esc(loan.name)+'</div>' +
-            '<div class="loan-since">Since '+fmtDate(loan.startDate)+'</div>' +
-            '<div class="loan-since" style="margin-top:2px">🕐 Added: '+(loan.addedAt || 'N/A')+'</div>' +
-            (loan.phone ? '<div style="font-size:0.78rem;color:var(--green);margin-top:2px;font-weight:600">📱 +'+loan.phone+'</div>' : '<div style="font-size:0.72rem;color:var(--red);margin-top:2px">📵 No number</div>') +
+            '<div class="loan-since">'+T('Since','Since')+' '+fmtDate(loan.startDate)+'</div>' +
+            '<div class="loan-since" style="margin-top:2px">🕐 '+T('Added','Added')+': '+(loan.addedAt||'N/A')+'</div>' +
+            (loan.phone ? '<div style="font-size:0.78rem;color:var(--green);margin-top:2px;font-weight:600">📱 +'+loan.phone+'</div>' : '<div style="font-size:0.72rem;color:var(--red);margin-top:2px">📵 '+T('No number','No number')+'</div>') +
             (loan.note?'<div class="loan-note-preview">'+esc(loan.note)+'</div>':'') +
           '</div>' +
           '<div class="header-right">' +
@@ -1839,36 +1915,36 @@
           '</div>' +
         '</div>' +
         '<div class="loan-details">' +
-          '<div class="detail-item"><div class="detail-label">Principal</div><div class="detail-value gold">'+fmt(loan.principal)+'</div></div>' +
-          '<div class="detail-item"><div class="detail-label">Interest (Total)</div><div class="detail-value orange">'+fmt(loan.totalInterest)+'</div></div>' +
-          '<div class="detail-item"><div class="detail-label">Total</div><div class="detail-value gold">'+fmt(loan.totalAmount)+'</div></div>' +
-          '<div class="detail-item"><div class="detail-label">📈 Monthly Rate</div><div class="detail-value orange" style="font-size:1rem;font-weight:900">'+loan.rate+'<span style="font-size:0.72rem;font-weight:600">% / mo</span></div></div>' +
-          '<div class="detail-item"><div class="detail-label">Monthly EMI</div><div class="detail-value purple">'+fmt(loan.emi)+'</div></div>' +
-          '<div class="detail-item"><div class="detail-label">Wapas Aaya</div><div class="detail-value green">'+fmt(pa)+'</div></div>' +
-          '<div class="detail-item"><div class="detail-label">Baaki Hai</div><div class="detail-value red">'+fmt(pend)+'</div></div>' +
+          '<div class="detail-item"><div class="detail-label">'+T('Principal','Principal')+'</div><div class="detail-value gold">'+fmt(loan.principal)+'</div></div>' +
+          '<div class="detail-item"><div class="detail-label">'+T('Interest (Total)','Interest (Total)')+'</div><div class="detail-value orange">'+fmt(loan.totalInterest)+'</div></div>' +
+          '<div class="detail-item"><div class="detail-label">'+T('Total','Total')+'</div><div class="detail-value gold">'+fmt(loan.totalAmount)+'</div></div>' +
+          '<div class="detail-item"><div class="detail-label">📈 '+T('Monthly Rate','Monthly Rate')+'</div><div class="detail-value orange" style="font-size:1rem;font-weight:900">'+loan.rate+'<span style="font-size:0.72rem;font-weight:600">% / mo</span></div></div>' +
+          '<div class="detail-item"><div class="detail-label">'+T('Monthly EMI','Monthly EMI')+'</div><div class="detail-value purple">'+fmt(loan.emi)+'</div></div>' +
+          '<div class="detail-item"><div class="detail-label">'+T('Wapas Aaya','Received')+'</div><div class="detail-value green">'+fmt(pa)+'</div></div>' +
+          '<div class="detail-item"><div class="detail-label">'+T('Baaki Hai','Remaining')+'</div><div class="detail-value red">'+fmt(pend)+'</div></div>' +
         '</div>' +
         noteHtml +
         '<div class="progress-section">' +
-          '<div class="progress-meta"><span>'+pc+' / '+loan.months+' EMI Paid</span>' +
+          '<div class="progress-meta"><span>'+pc+' / '+loan.months+' '+T('EMI Paid','EMI Paid')+'</span>' +
           '<span style="color:'+(done?'var(--green)':(overdue?'var(--red)':'var(--accent)'))+'">'+prog+'%</span></div>' +
           '<div class="progress-bar"><div class="progress-fill '+(done?'done':'')+'" style="width:'+prog+'%"></div></div>' +
         '</div>' +
         '<div class="emi-section">' +
-          '<button class="emi-toggle" onclick="toggleSchedule('+loan.id+')">'+(loan.showSchedule?'▲ Schedule Band Karo':'▼ EMI Schedule Dekho')+'</button>' +
+          '<button class="emi-toggle" onclick="toggleSchedule('+loan.id+')">'+(loan.showSchedule?'▲ '+T('Schedule Band Karo','Hide Schedule'):'▼ '+T('EMI Schedule Dekho','View EMI Schedule'))+'</button>' +
           '<div class="emi-table '+(loan.showSchedule?'open':'')+'">' +
-            '<div class="emi-row header"><div>#</div><div>Amount</div><div>Due Date</div><div>Action</div></div>' +
+            '<div class="emi-row header"><div>#</div><div>'+T('Amount','Amount')+'</div><div>'+T('Due Date','Due Date')+'</div><div>'+T('Action','Action')+'</div></div>' +
             emiRows +
           '</div>' +
           '<button class="whatsapp-btn" onclick="sendWhatsApp('+loan.id+')">' +
             '<svg width="16" height="16" viewBox="0 0 24 24" fill="#25d366"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>' +
-            ' WhatsApp Reminder Bhejo' +
+            ' '+T('WhatsApp Reminder Bhejo','Send WhatsApp Reminder') +
           '</button>' +
           '<div class="loan-action-btns">' +
-            '<button class="btn-loan-export" onclick="exportLoanPDF('+loan.id+')">🖨️ PDF Statement</button>' +
-            '<button class="btn-loan-export" onclick="exportLoanCSV('+loan.id+')">📊 Excel Download</button>' +
-            '<button class="btn-loan-export" onclick="openRenew('+loan.id+')" style="color:var(--green);border-color:rgba(63,185,80,0.3)">🔄 Loan Renew</button>' +
-            '<button class="btn-loan-export" onclick="exportInvoicePDF('+loan.id+')" style="color:#a371f7;border-color:rgba(163,113,247,0.3)">🖨️ Invoice PDF</button>' +
-            '<button class="btn-loan-export" style="grid-column:1/-1;color:var(--accent);border-color:rgba(240,165,0,0.3)" onclick="copyEmiReminder('+loan.id+')">📋 EMI Reminder Copy Karo</button>' +
+            '<button class="btn-loan-export" onclick="exportLoanPDF('+loan.id+')">🖨️ '+T('PDF Statement','PDF Statement')+'</button>' +
+            '<button class="btn-loan-export" onclick="exportLoanCSV('+loan.id+')">📊 '+T('Excel Download','Excel Download')+'</button>' +
+            '<button class="btn-loan-export" onclick="openRenew('+loan.id+')" style="color:var(--green);border-color:rgba(63,185,80,0.3)">🔄 '+T('Loan Renew','Loan Renew')+'</button>' +
+            '<button class="btn-loan-export" onclick="exportInvoicePDF('+loan.id+')" style="color:#a371f7;border-color:rgba(163,113,247,0.3)">🖨️ '+T('Invoice PDF','Invoice PDF')+'</button>' +
+            '<button class="btn-loan-export" style="grid-column:1/-1;color:var(--accent);border-color:rgba(240,165,0,0.3)" onclick="copyEmiReminder('+loan.id+')">📋 '+T('EMI Reminder Copy Karo','Copy EMI Reminder')+'</button>' +
           '</div>' +
         '</div>' +
       '</div>';
@@ -2094,6 +2170,22 @@
     LANG = (LANG === 'hi') ? 'en' : 'hi';
     localStorage.setItem('udharKhata_lang', LANG);
     document.getElementById('langBtn').textContent = LANG === 'hi' ? '🌐 English' : '🌐 हिंदी';
+    // Update search placeholder
+    var si = document.getElementById('searchInput');
+    if (si) si.placeholder = T('Naam se dhundho...', 'Search by name...');
+    // Update filter options
+    var fs = document.getElementById('filterSelect');
+    if (fs && fs.options) {
+      var opts = [
+        T('Sab Dekho','All'),
+        T('Active','Active'),
+        T('Cleared','Cleared'),
+        T('Overdue','Overdue')
+      ];
+      for (var i = 0; i < fs.options.length && i < opts.length; i++) {
+        fs.options[i].text = opts[i];
+      }
+    }
     renderAll();
     showToast(LANG === 'en' ? '🌐 English mode on!' : '🌐 Hindi mode on!');
   }
