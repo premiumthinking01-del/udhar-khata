@@ -834,6 +834,14 @@
 
   function fmt(n) { return '₹' + Number(n).toLocaleString('en-IN', { maximumFractionDigits: 0 }); }
 
+  function fmtDate(d) {
+    if (!d) return '-';
+    var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    var parts = d.split('-');
+    if (parts.length !== 3) return d;
+    return parts[2] + '-' + months[parseInt(parts[1],10)-1] + '-' + parts[0];
+  }
+
   function showToast(msg) {
     var t = document.getElementById('toast');
     t.textContent = msg; t.classList.add('show');
@@ -1018,7 +1026,7 @@
         return '<div style="display:grid;grid-template-columns:28px 1fr 1fr 90px;gap:6px;padding:7px 8px;border-radius:6px;font-size:0.78rem;margin-bottom:3px;background:'+(e.paid?'rgba(63,185,80,0.07)':(od?'rgba(248,81,73,0.07)':'rgba(240,165,0,0.04)'))+';">' +
           '<div style="color:var(--muted);font-weight:700">'+e.month+'</div>' +
           '<div style="font-weight:600">'+fmt(e.amount)+'</div>' +
-          '<div style="color:var(--muted)">'+e.dueDate+'</div>' +
+          '<div style="color:var(--muted)">'+fmtDate(e.dueDate)+'</div>' +
           '<div style="color:'+statusColor+';font-weight:700">'+statusTxt+'</div>' +
         '</div>';
       }).join('');
@@ -1027,7 +1035,7 @@
         '<div class="bin-card-header">' +
           '<div>' +
             '<div class="bin-name">👤 '+esc(loan.name)+'</div>' +
-            '<div class="bin-meta">Loan since: '+loan.startDate+(loan.phone?' · 📱 +'+loan.phone:'')+'</div>' +
+            '<div class="bin-meta">Loan since: '+fmtDate(loan.startDate)+(loan.phone?' · 📱 +'+loan.phone:'')+'</div>' +
             '<div class="bin-meta" style="color:var(--green)">🕐 Added: '+(loan.addedAt||'N/A')+'</div>' +
             '<div class="bin-meta" style="color:var(--red)">🗑️ Deleted: '+(loan.deletedAt||'N/A')+'</div>' +
             (loan.note ? '<div class="bin-meta" style="margin-top:2px">📝 '+esc(loan.note)+'</div>' : '') +
@@ -1092,7 +1100,7 @@
     msg += '✅ Chuka Diya: ' + fmt(paidAmt) + '\n';
     msg += '🔴 Abhi Baaki: ' + fmt(loan.totalAmount - paidAmt) + '\n';
     msg += '📊 EMI: ' + paidCnt + '/' + loan.months + ' paid\n';
-    if (nextEmi) msg += '\n⏰ *Agla EMI: ' + fmt(nextEmi.amount) + '* — Due: ' + nextEmi.dueDate + '\n';
+    if (nextEmi) msg += '\n⏰ *Agla EMI: ' + fmt(nextEmi.amount) + '* — Due: ' + fmtDate(nextEmi.dueDate) + '\n';
     msg += '\nKripya jaldi payment karein. Shukriya! 🙏';
     // Number hai to directly us pe, warna WhatsApp khulega - contact khud choose karo
     var url = loan.phone
@@ -1154,7 +1162,7 @@
       var rowBg = e.paid ? '#f0fff4' : (overdue ? '#fff5f5' : '#fffbf0');
       return '<tr style="background:'+rowBg+';border-bottom:1px solid #eee">' +
         '<td style="padding:8px 12px;text-align:center;font-weight:700;color:#555">' + e.month + '</td>' +
-        '<td style="padding:8px 12px;font-weight:600;color:#333">' + e.dueDate + '</td>' +
+        '<td style="padding:8px 12px;font-weight:600;color:#333">' + fmtDate(e.dueDate) + '</td>' +
         '<td style="padding:8px 12px;font-weight:700;color:#1a1a2e">₹' + Number(e.amount).toLocaleString('en-IN') + '</td>' +
         '<td style="padding:8px 12px;'+statusStyle+'">' + statusText + '</td>' +
         '<td style="padding:8px 12px;color:#666;font-size:0.85em">' + (e.paidDate || '-') + '</td>' +
@@ -1186,7 +1194,7 @@
       '<div class="info-row">' +
         '<div class="info-item">👤 <b>Naam:</b> ' + esc(loan.name) + '</div>' +
         (loan.phone ? '<div class="info-item">📱 <b>Phone:</b> +' + loan.phone + '</div>' : '') +
-        '<div class="info-item">📅 <b>Since:</b> ' + loan.startDate + '</div>' +
+        '<div class="info-item">📅 <b>Since:</b> ' + fmtDate(loan.startDate) + '</div>' +
         (loan.note ? '<div class="info-item">📝 <b>Note:</b> ' + esc(loan.note) + '</div>' : '') +
       '</div>' +
       '<div class="summary">' +
@@ -1320,7 +1328,7 @@
         return '<div class="emi-row '+(e.paid?'paid-row':(od?'overdue-row':''))+'">' +
           '<div style="color:var(--muted);font-weight:700">'+e.month+'</div>' +
           '<div style="font-weight:600">'+fmt(e.amount)+'</div>' +
-          '<div style="font-size:0.76rem">'+e.dueDate+(od?'<span class="overdue-badge">OVERDUE</span>':'')+'</div>' +
+          '<div style="font-size:0.76rem">'+fmtDate(e.dueDate)+(od?'<span class="overdue-badge">OVERDUE</span>':'')+'</div>' +
           '<div>'+(e.paid
             ? '<button class="btn-unpay" onclick="markUnpaid('+loan.id+','+i+')">✅ PAID</button>'
             : '<button class="btn-pay" onclick="markPaid('+loan.id+','+i+')">❌ UNPAID</button>'
@@ -1341,7 +1349,7 @@
         '<div class="loan-header">' +
           '<div>' +
             '<div class="borrower-name">👤 '+esc(loan.name)+'</div>' +
-            '<div class="loan-since">Since '+loan.startDate+'</div>' +
+            '<div class="loan-since">Since '+fmtDate(loan.startDate)+'</div>' +
             '<div class="loan-since" style="margin-top:2px">🕐 Added: '+(loan.addedAt || 'N/A')+'</div>' +
             (loan.phone ? '<div style="font-size:0.78rem;color:var(--green);margin-top:2px;font-weight:600">📱 +'+loan.phone+'</div>' : '<div style="font-size:0.72rem;color:var(--red);margin-top:2px">📵 No number</div>') +
             (loan.note?'<div class="loan-note-preview">'+esc(loan.note)+'</div>':'') +
@@ -1405,7 +1413,7 @@
       msg = 'Namaskar *' + loan.name + '* ji! 🙏\n\n';
       msg += (isOverdueEmi ? '🔴 *EMI OVERDUE Notice*\n\n' : '⏰ *EMI Reminder*\n\n');
       msg += '━━━━━━━━━━━━━━━━\n';
-      msg += '📅 Due Date: *' + nextEmi.dueDate + '*\n';
+      msg += '📅 Due Date: *' + fmtDate(nextEmi.dueDate) + '*\n';
       msg += '💵 EMI Amount: *' + fmt(nextEmi.amount) + '*\n';
       msg += '📊 EMI No.: ' + nextEmi.month + ' / ' + loan.months + '\n';
       msg += '✅ Paid: ' + fmt(paidAmt) + '\n';
@@ -1460,7 +1468,7 @@
         var sc = e.paid ? '#2da44e' : (od ? '#cf222e' : '#d4920a');
         return '<tr style="background:'+bg+';border-bottom:1px solid #f0f0f0">' +
           '<td style="padding:6px 10px;text-align:center;font-weight:700;color:#666">'+e.month+'</td>' +
-          '<td style="padding:6px 10px;color:#333">'+e.dueDate+'</td>' +
+          '<td style="padding:6px 10px;color:#333">'+fmtDate(e.dueDate)+'</td>' +
           '<td style="padding:6px 10px;font-weight:700;color:#1a1a2e">₹'+Number(e.amount).toLocaleString('en-IN')+'</td>' +
           '<td style="padding:6px 10px;font-weight:700;color:'+sc+'">'+statusTxt+'</td>' +
           '<td style="padding:6px 10px;color:#888;font-size:0.82em">'+(e.paidDate||'-')+'</td>' +
@@ -1471,7 +1479,7 @@
         '<div style="background:#1a1a2e;color:#fff;padding:14px 18px;display:flex;justify-content:space-between;align-items:center">' +
           '<div>' +
             '<div style="font-size:1.1rem;font-weight:800">'+String(idx+1)+'. 👤 '+loan.name+'</div>' +
-            '<div style="font-size:0.78rem;opacity:0.7;margin-top:2px">Since '+loan.startDate+(loan.phone?' · 📱 +'+loan.phone:'')+(loan.addedAt?' · Added: '+loan.addedAt:'')+'</div>' +
+            '<div style="font-size:0.78rem;opacity:0.7;margin-top:2px">Since '+fmtDate(loan.startDate)+(loan.phone?' · 📱 +'+loan.phone:'')+(loan.addedAt?' · Added: '+loan.addedAt:'')+'</div>' +
             (loan.note ? '<div style="font-size:0.78rem;opacity:0.7;margin-top:1px">📝 '+loan.note+'</div>' : '') +
           '</div>' +
           '<span style="background:'+statusColor+';color:#fff;padding:4px 12px;border-radius:20px;font-size:0.75rem;font-weight:700">'+statusText+'</span>' +
