@@ -422,10 +422,10 @@
   <div class="setup-box" style="overflow:hidden;padding:0">
 
     <!-- Single sliding container -->
-    <div id="wSlider" style="display:flex;transition:transform 0.35s cubic-bezier(0.4,0,0.2,1);width:300%">
+    <div id="wSlider" style="display:flex;transition:transform 0.35s cubic-bezier(0.4,0,0.2,1);width:400%">
 
       <!-- ── PANEL 1: Choose ── -->
-      <div style="width:33.33%;flex-shrink:0;padding:28px 24px">
+      <div style="width:25%;flex-shrink:0;padding:28px 24px">
         <div style="text-align:center;margin-bottom:4px">
           <div style="font-size:3rem;line-height:1">💰</div>
           <div style="font-size:1.5rem;font-weight:900;margin:10px 0 4px;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">Udhar Khata</div>
@@ -443,7 +443,7 @@
           <div style="margin-left:auto;color:var(--accent);font-size:1.3rem;font-weight:900">→</div>
         </button>
 
-        <button onclick="goToRestore()" style="display:flex;align-items:center;gap:14px;width:100%;background:var(--surface);border:1.5px solid var(--border);border-radius:14px;padding:16px;cursor:pointer;font-family:inherit;text-align:left">
+        <button onclick="goToRestore()" style="display:flex;align-items:center;gap:14px;width:100%;background:var(--surface);border:1.5px solid var(--border);border-radius:14px;padding:16px;cursor:pointer;font-family:inherit;margin-bottom:12px;text-align:left">
           <div style="font-size:2rem;flex-shrink:0">♻️</div>
           <div>
             <div style="font-weight:800;color:var(--text);font-size:0.95rem">Backup Se Restore Karo</div>
@@ -452,13 +452,22 @@
           <div style="margin-left:auto;color:var(--muted);font-size:1.3rem;font-weight:900">→</div>
         </button>
 
+        <button onclick="goToCloudRestore()" style="display:flex;align-items:center;gap:14px;width:100%;background:var(--surface);border:1.5px solid rgba(63,185,80,0.35);border-radius:14px;padding:16px;cursor:pointer;font-family:inherit;text-align:left">
+          <div style="font-size:2rem;flex-shrink:0">☁️</div>
+          <div>
+            <div style="font-weight:800;color:var(--text);font-size:0.95rem">Cloud Se Restore Karo</div>
+            <div style="font-size:0.78rem;color:var(--muted);margin-top:3px;line-height:1.5">JSONBin pe data save hai —<br><b style="color:var(--green)">API Key + Bin ID</b> se seedha load karo</div>
+          </div>
+          <div style="margin-left:auto;color:var(--green);font-size:1.3rem;font-weight:900">→</div>
+        </button>
+
         <div style="margin-top:18px;text-align:center;font-size:0.71rem;color:var(--muted);line-height:1.7">
           🔒 Data sirf <b>aapke device</b> par · Koi server nahi · 100% private
         </div>
       </div>
 
       <!-- ── PANEL 2: Setup Form ── -->
-      <div style="width:33.33%;flex-shrink:0;padding:24px 24px 28px">
+      <div style="width:25%;flex-shrink:0;padding:24px 24px 28px">
         <button onclick="backToStep1()" style="background:none;border:none;color:var(--muted);font-size:0.82rem;cursor:pointer;font-family:inherit;padding:0;margin-bottom:18px;display:flex;align-items:center;gap:5px">← Wapas</button>
 
         <div style="text-align:center;margin-bottom:20px">
@@ -493,7 +502,7 @@
       </div>
 
       <!-- ── PANEL 3: Restore ── -->
-      <div style="width:33.33%;flex-shrink:0;padding:24px 24px 28px">
+      <div style="width:25%;flex-shrink:0;padding:24px 24px 28px">
         <button onclick="backToStep1()" style="background:none;border:none;color:var(--muted);font-size:0.82rem;cursor:pointer;font-family:inherit;padding:0;margin-bottom:18px;display:flex;align-items:center;gap:5px">← Wapas</button>
 
         <div style="text-align:center;margin-bottom:22px">
@@ -513,6 +522,31 @@
 
         <div style="background:rgba(63,185,80,0.08);border:1px solid rgba(63,185,80,0.25);border-radius:10px;padding:12px 14px;font-size:0.78rem;color:var(--muted);line-height:1.6">
           ✅ File choose hote hi saara data automatically wapas aa jaayega — loans, EMI schedule, sab kuch!
+        </div>
+      </div>
+
+      <!-- ── PANEL 4: Cloud Restore ── -->
+      <div style="width:25%;flex-shrink:0;padding:24px 24px 28px">
+        <button onclick="backToStep1()" style="background:none;border:none;color:var(--muted);font-size:0.82rem;cursor:pointer;font-family:inherit;padding:0;margin-bottom:18px;display:flex;align-items:center;gap:5px">← Wapas</button>
+
+        <div style="text-align:center;margin-bottom:20px">
+          <div style="font-size:2rem">☁️</div>
+          <div style="font-size:1.2rem;font-weight:900;color:var(--text);margin-top:6px">Cloud Se Restore</div>
+          <div style="color:var(--muted);font-size:0.82rem;margin-top:4px">JSONBin API Key aur Bin ID daalo</div>
+        </div>
+
+        <div id="cloudRestoreMsg" style="display:none;padding:10px 14px;border-radius:10px;font-size:0.82rem;font-weight:600;margin-bottom:12px"></div>
+
+        <div style="font-size:0.72rem;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px">API Key (X-Access-Key)</div>
+        <input type="password" id="cloudRestoreKey" placeholder="$2a$10$xxxx..." style="width:100%;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:11px 14px;color:var(--text);font-family:inherit;font-size:0.88rem;outline:none;margin-bottom:12px;box-sizing:border-box" />
+
+        <div style="font-size:0.72rem;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px">Bin ID</div>
+        <input type="text" id="cloudRestoreBin" placeholder="65f3a2b1e3a57843..." style="width:100%;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:11px 14px;color:var(--text);font-family:inherit;font-size:0.88rem;outline:none;margin-bottom:16px;box-sizing:border-box" />
+
+        <button onclick="doCloudRestore()" style="width:100%;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;border-radius:12px;padding:13px;font-family:inherit;font-size:0.95rem;font-weight:800;cursor:pointer">☁️ Data Load Karo</button>
+
+        <div style="font-size:0.71rem;color:var(--muted);text-align:center;margin-top:12px;line-height:1.6">
+          🔒 Data load hone ke baad wahi password maangega<br>jo pehle set kiya tha
         </div>
       </div>
 
@@ -1063,13 +1097,14 @@
 
   // ===== WELCOME FLOW — slide animation =====
   function showStep(n) {
-    // n=1 → 0%, n=2 → -33.33%, n=3 → -66.66%
-    var offset = (n - 1) * -33.3333;
+    // 4 panels: n=1→0%, n=2→-25%, n=3→-50%, n=4→-75%
+    var offset = (n - 1) * -25;
     document.getElementById('wSlider').style.transform = 'translateX(' + offset + '%)';
   }
-  function goToSetup()   { showStep(2); }
-  function goToRestore() { showStep(3); }
-  function backToStep1() { showStep(1); }
+  function goToSetup()        { showStep(2); }
+  function goToRestore()      { showStep(3); }
+  function goToCloudRestore() { showStep(4); document.getElementById('cloudRestoreMsg').style.display='none'; }
+  function backToStep1()      { showStep(1); }
 
   function selectCity(city) {
     document.getElementById('setupCity').value = city;
@@ -2576,6 +2611,76 @@
     showSyncStatus('☁️ Cloud Sync OFF', 'var(--muted)');
     closeFeature('cloudSetupOverlay');
     showToast('☁️ Cloud sync band ho gayi!');
+  }
+
+  function showCloudRestoreMsg(msg, color) {
+    var el = document.getElementById('cloudRestoreMsg');
+    el.style.display = 'block';
+    el.textContent = msg;
+    el.style.background = color === 'green' ? 'rgba(63,185,80,0.1)' : (color === 'red' ? 'rgba(248,81,73,0.1)' : 'rgba(240,165,0,0.1)');
+    el.style.border = '1px solid ' + (color === 'green' ? 'rgba(63,185,80,0.4)' : (color === 'red' ? 'rgba(248,81,73,0.4)' : 'rgba(240,165,0,0.4)'));
+    el.style.color = color === 'green' ? 'var(--green)' : (color === 'red' ? 'var(--red)' : 'var(--accent)');
+  }
+
+  function doCloudRestore() {
+    var key = (document.getElementById('cloudRestoreKey').value || '').trim();
+    var id  = (document.getElementById('cloudRestoreBin').value || '').trim();
+    if (!key) { showCloudRestoreMsg('❌ API Key daalo!', 'red'); return; }
+    if (!id)  { showCloudRestoreMsg('❌ Bin ID daalo!', 'red'); return; }
+
+    showCloudRestoreMsg('☁️ Data load ho raha hai...', 'yellow');
+
+    fetch('https://api.jsonbin.io/v3/b/' + id + '/latest', {
+      headers: { 'X-Access-Key': key }
+    })
+    .then(function(r) {
+      if (r.status === 401) throw new Error('401');
+      if (r.status === 404) throw new Error('404');
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    })
+    .then(function(data) {
+      var rec = data.record;
+      if (!rec) throw new Error('empty');
+
+      // Save cloud keys for future auto-sync
+      localStorage.setItem('udharKhata_jkey', key);
+      localStorage.setItem('udharKhata_jid', id);
+      JBIN_KEY = key; JBIN_ID = id;
+      JBIN_URL = 'https://api.jsonbin.io/v3/b/' + id;
+
+      // Restore data
+      var cloudLoans = safeArr(rec.loans).map(sanitizeLoan).filter(Boolean);
+      var cloudBin   = safeArr(rec.bin).map(sanitizeLoan).filter(Boolean);
+      loans = cloudLoans;
+      bin   = cloudBin;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(loans));
+      localStorage.setItem(BIN_KEY, JSON.stringify(bin));
+
+      // Restore profile
+      if (rec.profile && typeof rec.profile === 'object') {
+        saveProfile(rec.profile);
+      }
+
+      // Password cloud mein saved nahi hota — lock screen pe check hoga
+      showCloudRestoreMsg('✅ ' + loans.length + ' loans load ho gaye! Ab password daalo.', 'green');
+
+      setTimeout(function() {
+        document.getElementById('welcomeScreen').classList.add('hidden');
+        updateOwnerDisplay();
+        renderAll();
+        updateBinBadge();
+        updateCloudBtn(true);
+        showSyncStatus('☁️ Cloud Sync ON', 'var(--green)');
+        document.getElementById('lockScreen').classList.remove('hidden');
+        showToast('✅ Cloud se ' + loans.length + ' loans restore ho gaye!');
+      }, 1200);
+    })
+    .catch(function(err) {
+      if (err.message === '401') showCloudRestoreMsg('❌ API Key galat hai!', 'red');
+      else if (err.message === '404') showCloudRestoreMsg('❌ Bin ID nahi mila!', 'red');
+      else showCloudRestoreMsg('❌ Data load nahi ho saka. Keys check karo.', 'red');
+    });
   }
 
   function showCloudMsg(msg, color) {
