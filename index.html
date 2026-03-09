@@ -344,6 +344,72 @@
     border-radius: 10px; padding: 8px 14px; font-size: 0.82rem; color: var(--accent);
     font-weight: 600; text-align: center; margin-bottom: 14px;
   }
+
+  /* ===== FEATURE MODALS (shared) ===== */
+  .feat-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.78); z-index:1002; align-items:flex-end; justify-content:center; padding:0; }
+  .feat-overlay.show { display:flex; }
+  .feat-box { background:var(--card); border:1px solid var(--border); border-radius:24px 24px 0 0; padding:22px 18px 30px; width:100%; max-width:620px; max-height:90vh; overflow-y:auto; }
+  .feat-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; }
+  .feat-title { font-size:1.15rem; font-weight:900; color:var(--text); }
+  .btn-feat-close { background:var(--surface); border:1px solid var(--border); border-radius:50%; width:34px; height:34px; font-size:1rem; cursor:pointer; color:var(--muted); font-family:inherit; flex-shrink:0; }
+
+  /* ===== CALENDAR ===== */
+  .cal-nav { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
+  .cal-month-label { font-size:1rem; font-weight:800; color:var(--text); }
+  .btn-cal-nav { background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:6px 14px; font-family:inherit; font-size:0.85rem; font-weight:700; color:var(--muted); cursor:pointer; }
+  .cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:4px; }
+  .cal-day-header { text-align:center; font-size:0.65rem; font-weight:700; color:var(--muted); text-transform:uppercase; padding:4px 0; }
+  .cal-day { min-height:52px; background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:5px 4px; cursor:pointer; transition:border-color 0.15s; position:relative; }
+  .cal-day:hover { border-color:var(--accent); }
+  .cal-day.empty { background:transparent; border-color:transparent; cursor:default; }
+  .cal-day.today-day { border-color:var(--accent); background:rgba(240,165,0,0.08); }
+  .cal-day.has-emi { border-color:rgba(248,81,73,0.5); }
+  .cal-day-num { font-size:0.78rem; font-weight:700; color:var(--text); display:block; text-align:center; margin-bottom:3px; }
+  .cal-dots { display:flex; flex-wrap:wrap; gap:2px; justify-content:center; }
+  .cal-dot { width:5px; height:5px; border-radius:50%; background:var(--red); flex-shrink:0; }
+  .cal-dot.paid-dot { background:var(--green); }
+  .cal-popup { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:12px; margin-top:14px; }
+  .cal-popup-title { font-size:0.85rem; font-weight:800; color:var(--accent); margin-bottom:10px; }
+  .cal-popup-item { font-size:0.82rem; color:var(--text); padding:7px 10px; border-radius:8px; margin-bottom:6px; background:var(--card); display:flex; justify-content:space-between; align-items:center; }
+
+  /* ===== TOP BORROWERS ===== */
+  .topb-item { display:flex; align-items:center; gap:12px; padding:12px 14px; background:var(--surface); border:1px solid var(--border); border-radius:12px; margin-bottom:10px; }
+  .topb-rank { font-size:1.4rem; flex-shrink:0; width:36px; text-align:center; }
+  .topb-bar-wrap { flex:1; }
+  .topb-name { font-size:0.9rem; font-weight:800; color:var(--text); margin-bottom:4px; }
+  .topb-bar-bg { background:var(--card); border-radius:4px; height:6px; overflow:hidden; }
+  .topb-bar-fill { height:6px; border-radius:4px; background:linear-gradient(90deg,var(--red),var(--accent2)); }
+  .topb-amt { font-size:0.9rem; font-weight:900; color:var(--red); flex-shrink:0; }
+
+  /* ===== MONTHLY SUMMARY ===== */
+  .ms-row { display:grid; grid-template-columns:1.2fr 1fr 1fr 1fr; gap:6px; padding:9px 10px; border-radius:8px; margin-bottom:5px; font-size:0.8rem; align-items:center; }
+  .ms-row.ms-header { background:var(--surface); color:var(--muted); font-size:0.68rem; font-weight:700; text-transform:uppercase; letter-spacing:0.4px; }
+  .ms-row.ms-data { background:var(--card); }
+  .ms-row.ms-current { background:rgba(240,165,0,0.1); border:1px solid rgba(240,165,0,0.3); }
+
+  /* ===== RENEW LOAN ===== */
+  .renew-info-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px; }
+  .renew-info-box { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:10px; text-align:center; }
+  .renew-label { font-size:0.68rem; color:var(--muted); text-transform:uppercase; font-weight:700; }
+  .renew-val { font-size:1rem; font-weight:800; color:var(--accent); margin-top:3px; }
+
+  /* ===== CUSTOMIZE ===== */
+  .cust-preview { text-align:center; padding:20px; background:var(--surface); border:1px solid var(--border); border-radius:14px; margin-bottom:16px; }
+  .cust-preview-logo { font-size:2rem; font-weight:900; background:linear-gradient(135deg,var(--accent),var(--accent2)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+
+  /* ===== PROFILES ===== */
+  .profile-item { display:flex; align-items:center; gap:12px; padding:13px 14px; background:var(--surface); border:1.5px solid var(--border); border-radius:12px; margin-bottom:9px; cursor:pointer; }
+  .profile-item.active-profile { border-color:var(--accent); background:rgba(240,165,0,0.06); }
+  .profile-icon { font-size:1.6rem; flex-shrink:0; }
+  .profile-name { font-size:0.95rem; font-weight:800; color:var(--text); }
+  .profile-meta { font-size:0.75rem; color:var(--muted); margin-top:2px; }
+  .profile-active-badge { margin-left:auto; font-size:0.7rem; background:rgba(240,165,0,0.2); color:var(--accent); border:1px solid rgba(240,165,0,0.4); border-radius:20px; padding:3px 10px; font-weight:700; flex-shrink:0; }
+
+  /* ===== BULK WA ===== */
+  .wa-item { display:flex; align-items:center; gap:12px; padding:11px 13px; background:var(--surface); border:1px solid var(--border); border-radius:12px; margin-bottom:8px; }
+  .wa-item-name { font-size:0.9rem; font-weight:800; color:var(--text); }
+  .wa-item-meta { font-size:0.75rem; color:var(--muted); margin-top:2px; }
+  .btn-wa-send { background:rgba(37,211,102,0.12); border:1px solid rgba(37,211,102,0.35); color:#25d366; border-radius:8px; padding:7px 12px; font-size:0.78rem; font-weight:700; cursor:pointer; font-family:inherit; flex-shrink:0; white-space:nowrap; }
 </style>
 </head>
 <body>
@@ -472,6 +538,13 @@
     <div class="subtitle" id="ownerInfoDisplay">Apna Hisaab Saaf Rakho</div>
     <div class="header-btns">
       <button class="btn-header" onclick="toggleTheme()"><span id="themeIcon">☀️</span> <span id="themeText">Light Mode</span></button>
+      <button class="btn-header" onclick="toggleLang()" id="langBtn">🌐 English</button>
+      <button class="btn-header" onclick="openCalendar()">📅 Calendar</button>
+      <button class="btn-header" onclick="openSummary()">📈 Summary</button>
+      <button class="btn-header" onclick="openTopBorrowers()">🏆 Top</button>
+      <button class="btn-header" onclick="openBulkWA()">📱 Bulk WA</button>
+      <button class="btn-header" onclick="openProfiles()">👥 Profiles</button>
+      <button class="btn-header" onclick="openCustomize()">🎨 Customize</button>
       <button class="btn-header" onclick="document.getElementById('settingsOverlay').classList.add('show')">🔑 Password</button>
       <button class="btn-header" onclick="openBin()">🗑️ Bin <span id="binBadge"></span></button>
       <button class="btn-header" onclick="downloadBackup()">💾 Backup</button>
@@ -645,18 +718,174 @@
   </div>
 </div>
 
+<!-- ===== CALENDAR OVERLAY ===== -->
+<div class="feat-overlay" id="calOverlay">
+  <div class="feat-box">
+    <div class="feat-header">
+      <div class="feat-title">📅 EMI Calendar</div>
+      <button class="btn-feat-close" onclick="closeFeature('calOverlay')">✕</button>
+    </div>
+    <div class="cal-nav">
+      <button class="btn-cal-nav" onclick="calPrev()">← Pichla</button>
+      <div class="cal-month-label" id="calMonthLabel"></div>
+      <button class="btn-cal-nav" onclick="calNext()">Agla →</button>
+    </div>
+    <div class="cal-grid" id="calDayHeaders"></div>
+    <div class="cal-grid" id="calGrid" style="margin-top:4px"></div>
+    <div id="calPopup" style="display:none" class="cal-popup"></div>
+    <div style="display:flex;gap:14px;margin-top:14px;font-size:0.75rem;color:var(--muted)">
+      <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--red);margin-right:4px"></span>Unpaid EMI</span>
+      <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--green);margin-right:4px"></span>Paid EMI</span>
+    </div>
+  </div>
+</div>
+
+<!-- ===== TOP BORROWERS OVERLAY ===== -->
+<div class="feat-overlay" id="topbOverlay">
+  <div class="feat-box">
+    <div class="feat-header">
+      <div class="feat-title">🏆 Top Borrowers</div>
+      <button class="btn-feat-close" onclick="closeFeature('topbOverlay')">✕</button>
+    </div>
+    <div id="topbList"></div>
+  </div>
+</div>
+
+<!-- ===== MONTHLY SUMMARY OVERLAY ===== -->
+<div class="feat-overlay" id="summaryOverlay">
+  <div class="feat-box">
+    <div class="feat-header">
+      <div class="feat-title">📈 Monthly Summary</div>
+      <button class="btn-feat-close" onclick="closeFeature('summaryOverlay')">✕</button>
+    </div>
+    <div id="summaryContent"></div>
+  </div>
+</div>
+
+<!-- ===== BULK WHATSAPP OVERLAY ===== -->
+<div class="feat-overlay" id="waOverlay">
+  <div class="feat-box">
+    <div class="feat-header">
+      <div class="feat-title">📱 Bulk WhatsApp Reminders</div>
+      <button class="btn-feat-close" onclick="closeFeature('waOverlay')">✕</button>
+    </div>
+    <div style="font-size:0.82rem;color:var(--muted);margin-bottom:14px">Jinki EMI overdue ya aaj/kal due hai — unhe ek ek click mein reminder bhejo</div>
+    <div id="waList"></div>
+  </div>
+</div>
+
+<!-- ===== LOAN RENEW OVERLAY ===== -->
+<div class="feat-overlay" id="renewOverlay">
+  <div class="feat-box">
+    <div class="feat-header">
+      <div class="feat-title">🔄 Loan Renew Karo</div>
+      <button class="btn-feat-close" onclick="closeFeature('renewOverlay')">✕</button>
+    </div>
+    <div id="renewContent"></div>
+  </div>
+</div>
+
+<!-- ===== APP CUSTOMIZE OVERLAY ===== -->
+<div class="feat-overlay" id="custOverlay">
+  <div class="feat-box">
+    <div class="feat-header">
+      <div class="feat-title">🎨 App Customize Karo</div>
+      <button class="btn-feat-close" onclick="closeFeature('custOverlay')">✕</button>
+    </div>
+    <div class="cust-preview">
+      <div class="cust-preview-logo" id="custPreviewLogo">💰 Udhar Khata</div>
+      <div style="font-size:0.8rem;color:var(--muted);margin-top:4px" id="custPreviewSub">Apna Hisaab Saaf Rakho</div>
+    </div>
+    <div style="margin-bottom:12px">
+      <div style="font-size:0.72rem;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px">App Emoji</div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px" id="emojiPicker">
+        <span onclick="selectEmoji(this)" style="font-size:1.5rem;cursor:pointer;padding:4px;border-radius:8px;border:2px solid transparent" data-emoji="💰">💰</span>
+        <span onclick="selectEmoji(this)" style="font-size:1.5rem;cursor:pointer;padding:4px;border-radius:8px;border:2px solid transparent" data-emoji="📒">📒</span>
+        <span onclick="selectEmoji(this)" style="font-size:1.5rem;cursor:pointer;padding:4px;border-radius:8px;border:2px solid transparent" data-emoji="🏦">🏦</span>
+        <span onclick="selectEmoji(this)" style="font-size:1.5rem;cursor:pointer;padding:4px;border-radius:8px;border:2px solid transparent" data-emoji="💵">💵</span>
+        <span onclick="selectEmoji(this)" style="font-size:1.5rem;cursor:pointer;padding:4px;border-radius:8px;border:2px solid transparent" data-emoji="📊">📊</span>
+        <span onclick="selectEmoji(this)" style="font-size:1.5rem;cursor:pointer;padding:4px;border-radius:8px;border:2px solid transparent" data-emoji="🪙">🪙</span>
+        <span onclick="selectEmoji(this)" style="font-size:1.5rem;cursor:pointer;padding:4px;border-radius:8px;border:2px solid transparent" data-emoji="💎">💎</span>
+        <span onclick="selectEmoji(this)" style="font-size:1.5rem;cursor:pointer;padding:4px;border-radius:8px;border:2px solid transparent" data-emoji="🏪">🏪</span>
+      </div>
+      <div style="font-size:0.72rem;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px">App Ka Naam</div>
+      <input type="text" id="custAppName" placeholder="Udhar Khata" oninput="updateCustPreview()" style="width:100%;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:11px 14px;color:var(--text);font-family:inherit;font-size:0.95rem;outline:none;margin-bottom:10px" />
+      <div style="font-size:0.72rem;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px">Subtitle</div>
+      <input type="text" id="custSubtitle" placeholder="Apna Hisaab Saaf Rakho" oninput="updateCustPreview()" style="width:100%;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:11px 14px;color:var(--text);font-family:inherit;font-size:0.95rem;outline:none;margin-bottom:14px" />
+    </div>
+    <button onclick="saveCust()" style="width:100%;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;border-radius:12px;padding:13px;font-family:inherit;font-size:0.95rem;font-weight:800;cursor:pointer;margin-bottom:8px">✅ Save Karo</button>
+    <button onclick="resetCust()" style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:11px;font-family:inherit;font-size:0.85rem;font-weight:700;color:var(--muted);cursor:pointer">↩ Default Pe Wapas</button>
+  </div>
+</div>
+
+<!-- ===== PROFILES OVERLAY ===== -->
+<div class="feat-overlay" id="profilesOverlay">
+  <div class="feat-box">
+    <div class="feat-header">
+      <div class="feat-title">👥 Profiles</div>
+      <button class="btn-feat-close" onclick="closeFeature('profilesOverlay')">✕</button>
+    </div>
+    <div style="font-size:0.82rem;color:var(--muted);margin-bottom:14px">Family, Business, Personal — alag alag data, ek hi app!</div>
+    <div id="profilesList"></div>
+    <div style="height:1px;background:var(--border);margin:14px 0"></div>
+    <div style="font-size:0.82rem;color:var(--text);font-weight:700;margin-bottom:8px">➕ Naya Profile Add Karo</div>
+    <div style="display:flex;gap:8px">
+      <input type="text" id="newProfileName" placeholder="Jaise: Business, Family..." maxlength="20" style="flex:1;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:10px 13px;color:var(--text);font-family:inherit;font-size:0.9rem;outline:none" />
+      <button onclick="addProfile()" style="background:var(--accent);color:#fff;border:none;border-radius:10px;padding:10px 16px;font-family:inherit;font-size:0.88rem;font-weight:800;cursor:pointer;white-space:nowrap">Add</button>
+    </div>
+    <div style="font-size:0.72rem;color:var(--muted);margin-top:6px">⚠️ Profile switch karne pe pehle wala data automatically save rahega</div>
+  </div>
+</div>
+
+<!-- ===== INVOICE PDF OVERLAY ===== -->
+<div class="feat-overlay" id="invoiceSelectOverlay">
+  <div class="feat-box">
+    <div class="feat-header">
+      <div class="feat-title">🖨️ Professional Invoice</div>
+      <button class="btn-feat-close" onclick="closeFeature('invoiceSelectOverlay')">✕</button>
+    </div>
+    <div style="font-size:0.82rem;color:var(--muted);margin-bottom:14px">Kis loan ka professional invoice chahiye?</div>
+    <div id="invoiceSelectList"></div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
+  var PLIST_KEY = 'udharKhata_plist';
+  var PACTIVE_KEY = 'udharKhata_pactive';
+  var CUST_KEY = 'udharKhata_cust';
+  var LANG_KEY = 'udharKhata_lang';
   var STORAGE_KEY = 'udharKhata_v3';
   var BIN_KEY = 'udharKhata_bin';
   var PW_KEY = 'udharKhata_pw';
   var THEME_KEY = 'udharKhata_theme';
   var PROFILE_KEY = 'udharKhata_profile';
+
+  // ===== MULTI PROFILE KEYS =====
+  function getActiveProfileName() { return localStorage.getItem(PACTIVE_KEY) || 'Personal'; }
+  function updateStorageKeys() {
+    var p = getActiveProfileName();
+    var sfx = (p === 'Personal') ? '' : ('_' + p);
+    STORAGE_KEY = 'udharKhata_v3' + sfx;
+    BIN_KEY     = 'udharKhata_bin' + sfx;
+    PROFILE_KEY = 'udharKhata_profile' + sfx;
+  }
+  function getProfileList() {
+    try { return JSON.parse(localStorage.getItem(PLIST_KEY)) || ['Personal']; } catch(e) { return ['Personal']; }
+  }
+  function saveProfileList(list) { localStorage.setItem(PLIST_KEY, JSON.stringify(list)); }
+  updateStorageKeys();
   var loans = [];
   var bin = [];
   var pendingDeleteId = null;
   var today = new Date().toISOString().split('T')[0];
+  var LANG = localStorage.getItem('udharKhata_lang') || 'hi';
+  var calViewDate = new Date();
+  var selectedCalDate = null;
+  var renewLoanId = null;
+  var custEmoji = '';
+  var custEmojiSelected = '';
 
   // ===== PROFILE (owner name + city) =====
   function getProfile() {
@@ -1386,6 +1615,8 @@
           '<div class="loan-action-btns">' +
             '<button class="btn-loan-export" onclick="exportLoanPDF('+loan.id+')">🖨️ PDF Statement</button>' +
             '<button class="btn-loan-export" onclick="exportLoanCSV('+loan.id+')">📊 Excel Download</button>' +
+            '<button class="btn-loan-export" onclick="openRenew('+loan.id+')" style="color:var(--green);border-color:rgba(63,185,80,0.3)">🔄 Loan Renew</button>' +
+            '<button class="btn-loan-export" onclick="exportInvoicePDF('+loan.id+')" style="color:#a371f7;border-color:rgba(163,113,247,0.3)">🖨️ Invoice PDF</button>' +
             '<button class="btn-loan-export" style="grid-column:1/-1;color:var(--accent);border-color:rgba(240,165,0,0.3)" onclick="copyEmiReminder('+loan.id+')">📋 EMI Reminder Copy Karo</button>' +
           '</div>' +
         '</div>' +
@@ -1587,11 +1818,455 @@
       doLogout();
     }
   }
+  // ===== LANGUAGE TOGGLE =====
+  function toggleLang() {
+    LANG = (LANG === 'hi') ? 'en' : 'hi';
+    localStorage.setItem('udharKhata_lang', LANG);
+    document.getElementById('langBtn').textContent = LANG === 'hi' ? '🌐 English' : '🌐 हिंदी';
+    renderAll();
+    showToast(LANG === 'en' ? '🌐 English mode on!' : '🌐 Hindi mode on!');
+  }
+  function T(hi, en) { return LANG === 'en' ? en : hi; }
+
+  // ===== CLOSE FEATURE OVERLAY =====
+  function closeFeature(id) { document.getElementById(id).classList.remove('show'); }
+
+  // ===== CALENDAR =====
+  function openCalendar() {
+    calViewDate = new Date();
+    renderCalendar();
+    document.getElementById('calOverlay').classList.add('show');
+  }
+  function calPrev() { calViewDate.setMonth(calViewDate.getMonth()-1); renderCalendar(); }
+  function calNext() { calViewDate.setMonth(calViewDate.getMonth()+1); renderCalendar(); }
+
+  function renderCalendar() {
+    var yr = calViewDate.getFullYear(), mo = calViewDate.getMonth();
+    var mNamesEN = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    var mNamesHI = ['Janvari','Farvari','March','April','May','June','July','August','September','October','November','December'];
+    document.getElementById('calMonthLabel').textContent = (LANG==='en'?mNamesEN[mo]:mNamesHI[mo]) + ' ' + yr;
+    var emiMap = {};
+    loans.forEach(function(loan) {
+      loan.emis.forEach(function(e) {
+        var d = e.dueDate;
+        if (d && d.startsWith(yr+'-'+String(mo+1).padStart(2,'0'))) {
+          if (!emiMap[d]) emiMap[d] = [];
+          emiMap[d].push({ name: loan.name, amount: e.amount, paid: e.paid });
+        }
+      });
+    });
+    var days = LANG==='en' ? ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'] : ['Rvi','Som','Man','Bud','Gur','Shk','Sha'];
+    document.getElementById('calDayHeaders').innerHTML = days.map(function(d){ return '<div class="cal-day-header">'+d+'</div>'; }).join('');
+    var firstDay = new Date(yr, mo, 1).getDay();
+    var daysInMonth = new Date(yr, mo+1, 0).getDate();
+    var html = '';
+    for (var i = 0; i < firstDay; i++) html += '<div class="cal-day empty"></div>';
+    for (var d2 = 1; d2 <= daysInMonth; d2++) {
+      var ds = yr+'-'+String(mo+1).padStart(2,'0')+'-'+String(d2).padStart(2,'0');
+      var isToday = ds === today;
+      var emis = emiMap[ds] || [];
+      var dotsHtml = emis.slice(0,6).map(function(e){ return '<div class="cal-dot'+(e.paid?' paid-dot':'')+'"></div>'; }).join('');
+      html += '<div class="cal-day'+(isToday?' today-day':'')+(emis.length?' has-emi':'')+'" onclick="calDayClick(\''+ds+'\')">'+
+        '<span class="cal-day-num">'+d2+'</span>'+
+        (dotsHtml ? '<div class="cal-dots">'+dotsHtml+'</div>' : '')+
+        '</div>';
+    }
+    document.getElementById('calGrid').innerHTML = html;
+    document.getElementById('calPopup').style.display = 'none';
+  }
+
+  function calDayClick(dateStr) {
+    var emis = [];
+    loans.forEach(function(loan) {
+      loan.emis.forEach(function(e) {
+        if (e.dueDate === dateStr) emis.push({ name: loan.name, amount: e.amount, paid: e.paid });
+      });
+    });
+    var popup = document.getElementById('calPopup');
+    if (!emis.length) { popup.style.display='none'; return; }
+    popup.style.display = 'block';
+    popup.innerHTML = '<div class="cal-popup-title">📅 '+fmtDate(dateStr)+' — '+emis.length+' EMI'+(emis.length>1?'s':'')+'</div>' +
+      emis.map(function(e) {
+        return '<div class="cal-popup-item">'+
+          '<span>👤 '+esc(e.name)+'</span>'+
+          '<span style="display:flex;align-items:center;gap:8px">'+
+            '<span style="font-weight:800;color:var(--accent)">'+fmt(e.amount)+'</span>'+
+            '<span style="font-size:0.7rem;font-weight:700;padding:2px 8px;border-radius:10px;background:'+(e.paid?'rgba(63,185,80,0.15)':'rgba(248,81,73,0.15)')+';color:'+(e.paid?'var(--green)':'var(--red)')+'">'+( e.paid?'✅ PAID':'❌ UNPAID')+'</span>'+
+          '</span>'+
+        '</div>';
+      }).join('');
+  }
+
+  // ===== TOP BORROWERS =====
+  function openTopBorrowers() {
+    if (!loans.length) { showToast('❌ Koi loan nahi hai!'); return; }
+    var data = loans.map(function(l) {
+      var pa = l.emis.filter(function(e){ return e.paid; }).reduce(function(s,e){ return s+e.amount; }, 0);
+      return { name: l.name, baaki: l.totalAmount-pa, total: l.totalAmount, phone: l.phone };
+    }).sort(function(a,b){ return b.baaki-a.baaki; });
+    var maxBaaki = data[0].baaki || 1;
+    var medals = ['🥇','🥈','🥉','4️⃣','5️⃣','6️⃣','7️⃣','8️⃣','9️⃣','🔟'];
+    document.getElementById('topbList').innerHTML = data.slice(0,10).map(function(d,i) {
+      var pct = Math.round((d.baaki/maxBaaki)*100);
+      return '<div class="topb-item">'+
+        '<div class="topb-rank">'+medals[i]+'</div>'+
+        '<div class="topb-bar-wrap">'+
+          '<div class="topb-name">'+esc(d.name)+(d.phone?'<span style="font-size:0.72rem;color:var(--muted);font-weight:400"> · 📱+'+d.phone+'</span>':'')+'</div>'+
+          '<div class="topb-bar-bg"><div class="topb-bar-fill" style="width:'+pct+'%"></div></div>'+
+          '<div style="font-size:0.72rem;color:var(--muted);margin-top:3px">'+T('Kul Diya','Total Given')+': '+fmt(d.total)+'</div>'+
+        '</div>'+
+        '<div class="topb-amt">'+fmt(d.baaki)+'</div>'+
+      '</div>';
+    }).join('') + '<div style="font-size:0.75rem;color:var(--muted);text-align:center;margin-top:8px">'+T('Baaki outstanding ke hisaab se sorted','Sorted by outstanding balance')+'</div>';
+    document.getElementById('topbOverlay').classList.add('show');
+  }
+
+  // ===== MONTHLY SUMMARY =====
+  function openSummary() {
+    if (!loans.length) { showToast('❌ Koi loan nahi hai!'); return; }
+    var mNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    var summaryMap = {};
+    loans.forEach(function(l) {
+      l.emis.forEach(function(e) {
+        if (!e.dueDate) return;
+        var key = e.dueDate.substring(0,7);
+        if (!summaryMap[key]) summaryMap[key] = { expected:0, received:0, count:0 };
+        summaryMap[key].expected += e.amount;
+        summaryMap[key].count++;
+        if (e.paid) summaryMap[key].received += e.amount;
+      });
+    });
+    var keys = Object.keys(summaryMap).sort();
+    var curMo = today.substring(0,7);
+    var html = '<div class="ms-row ms-header"><div>'+T('Mahina','Month')+'</div><div>'+T('Expected','Expected')+'</div><div>'+T('Aaya','Received')+'</div><div>'+T('Baaki','Pending')+'</div></div>';
+    html += keys.map(function(k) {
+      var d = summaryMap[k];
+      var pend = d.expected - d.received;
+      var parts = k.split('-');
+      var mLabel = mNames[parseInt(parts[1],10)-1] + ' ' + parts[0];
+      var isCur = k === curMo;
+      return '<div class="ms-row ms-data'+(isCur?' ms-current':'')+'">'+
+        '<div style="font-weight:700;color:var(--text)">'+mLabel+(isCur?' ★':'')+' <span style="font-size:0.67rem;color:var(--muted)">('+d.count+' EMI)</span></div>'+
+        '<div style="font-weight:700;color:var(--accent)">'+fmt(d.expected)+'</div>'+
+        '<div style="font-weight:700;color:var(--green)">'+fmt(d.received)+'</div>'+
+        '<div style="font-weight:700;color:'+(pend>0?'var(--red)':'var(--green)')+'">'+fmt(pend)+'</div>'+
+      '</div>';
+    }).join('');
+    var tE = keys.reduce(function(s,k){ return s+summaryMap[k].expected; },0);
+    var tR = keys.reduce(function(s,k){ return s+summaryMap[k].received; },0);
+    html += '<div class="ms-row" style="background:rgba(240,165,0,0.1);border:1px solid rgba(240,165,0,0.3);margin-top:8px;font-weight:900">'+
+      '<div style="color:var(--accent)">'+T('Kul','Total')+'</div>'+
+      '<div style="color:var(--accent)">'+fmt(tE)+'</div>'+
+      '<div style="color:var(--green)">'+fmt(tR)+'</div>'+
+      '<div style="color:var(--red)">'+fmt(tE-tR)+'</div>'+
+    '</div>';
+    document.getElementById('summaryContent').innerHTML = html;
+    document.getElementById('summaryOverlay').classList.add('show');
+  }
+
+  // ===== BULK WHATSAPP =====
+  function openBulkWA() {
+    var items = [];
+    var soon = new Date(); soon.setDate(soon.getDate()+2);
+    var soonStr = soon.toISOString().split('T')[0];
+    loans.forEach(function(l) {
+      var overdueCount = l.emis.filter(function(e){ return !e.paid && e.dueDate < today; }).length;
+      var soonCount = l.emis.filter(function(e){ return !e.paid && e.dueDate>=today && e.dueDate<=soonStr; }).length;
+      var nextEmi = l.emis.find(function(e){ return !e.paid; });
+      if ((overdueCount||soonCount) && nextEmi && l.phone) {
+        items.push({ loan:l, overdueCount:overdueCount, nextEmi:nextEmi });
+      }
+    });
+    var waList = document.getElementById('waList');
+    if (!items.length) {
+      waList.innerHTML = '<div class="empty-state" style="padding:30px 0"><div class="icon">🎉</div><p>'+T('Koi overdue ya urgent EMI nahi hai!','No overdue or urgent EMIs!')+'</p></div>';
+    } else {
+      waList.innerHTML = items.map(function(item) {
+        var l = item.loan;
+        var col = item.overdueCount > 0 ? 'var(--red)' : 'var(--accent)';
+        var statusTxt = item.overdueCount > 0 ? '🔴 '+item.overdueCount+' OVERDUE' : '⏰ Due Soon';
+        return '<div class="wa-item">'+
+          '<div style="flex:1">'+
+            '<div class="wa-item-name">👤 '+esc(l.name)+'</div>'+
+            '<div class="wa-item-meta">'+fmt(item.nextEmi.amount)+' · '+fmtDate(item.nextEmi.dueDate)+' · <span style="color:'+col+';font-weight:700">'+statusTxt+'</span></div>'+
+          '</div>'+
+          '<button class="btn-wa-send" onclick="sendWhatsApp('+l.id+')">📱 '+T('Bhejo','Send')+'</button>'+
+        '</div>';
+      }).join('') + '<div style="font-size:0.72rem;color:var(--muted);text-align:center;margin-top:10px">⚠️ '+T('Sirf jinke phone number hai unhe bheja ja sakta hai','Only borrowers with phone numbers can be messaged')+'</div>';
+    }
+    document.getElementById('waOverlay').classList.add('show');
+  }
+
+  // ===== LOAN RENEW =====
+  function openRenew(loanId) {
+    renewLoanId = loanId;
+    var loan = loans.find(function(l){ return l.id===loanId; });
+    if (!loan) return;
+    var pc = loan.emis.filter(function(e){ return e.paid; }).length;
+    var pa = loan.emis.filter(function(e){ return e.paid; }).reduce(function(s,e){ return s+e.amount; }, 0);
+    var baaki = loan.totalAmount - pa;
+    var lastEmi = loan.emis[loan.emis.length-1];
+    var lastDate = lastEmi ? lastEmi.dueDate : today;
+    document.getElementById('renewContent').innerHTML =
+      '<div style="font-size:0.9rem;font-weight:700;color:var(--text);margin-bottom:12px">👤 '+esc(loan.name)+' ka loan extend karo</div>'+
+      '<div class="renew-info-grid">'+
+        '<div class="renew-info-box"><div class="renew-label">Baaki</div><div class="renew-val" style="color:var(--red)">'+fmt(baaki)+'</div></div>'+
+        '<div class="renew-info-box"><div class="renew-label">Current EMI</div><div class="renew-val">'+fmt(loan.emi)+'</div></div>'+
+        '<div class="renew-info-box"><div class="renew-label">Paid EMIs</div><div class="renew-val" style="color:var(--green)">'+pc+'/'+loan.months+'</div></div>'+
+        '<div class="renew-info-box"><div class="renew-label">Interest Rate</div><div class="renew-val">'+loan.rate+'%/mo</div></div>'+
+      '</div>'+
+      '<div style="font-size:0.75rem;color:var(--muted);margin-bottom:12px">Last EMI: '+fmtDate(lastDate)+'</div>'+
+      '<div style="font-size:0.72rem;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:7px">Kitne Mahine Aur?</div>'+
+      '<div style="display:flex;gap:8px;margin-bottom:12px">'+
+        '<input type="number" id="renewMonths" placeholder="Jaise: 6" min="1" max="60" style="flex:1;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:11px 14px;color:var(--text);font-family:inherit;font-size:1rem;outline:none" oninput="previewRenew()" />'+
+        '<button onclick="document.getElementById(\'renewMonths\').value=3;previewRenew()" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-family:inherit;font-size:0.82rem;font-weight:700;color:var(--muted);cursor:pointer">3M</button>'+
+        '<button onclick="document.getElementById(\'renewMonths\').value=6;previewRenew()" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-family:inherit;font-size:0.82rem;font-weight:700;color:var(--muted);cursor:pointer">6M</button>'+
+        '<button onclick="document.getElementById(\'renewMonths\').value=12;previewRenew()" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-family:inherit;font-size:0.82rem;font-weight:700;color:var(--muted);cursor:pointer">12M</button>'+
+      '</div>'+
+      '<div id="renewPreview" style="display:none;background:rgba(63,185,80,0.08);border:1px solid rgba(63,185,80,0.3);border-radius:12px;padding:13px;margin-bottom:13px;font-size:0.85rem;line-height:1.8"></div>'+
+      '<button onclick="confirmRenew()" style="width:100%;background:linear-gradient(135deg,var(--green),#2ea043);color:#fff;border:none;border-radius:12px;padding:13px;font-family:inherit;font-size:0.95rem;font-weight:800;cursor:pointer">✅ Renew Karo</button>';
+    document.getElementById('renewOverlay').classList.add('show');
+  }
+
+  function previewRenew() {
+    var loan = loans.find(function(l){ return l.id===renewLoanId; });
+    if (!loan) return;
+    var m = parseInt(document.getElementById('renewMonths').value);
+    var preview = document.getElementById('renewPreview');
+    if (!m || m<1) { preview.style.display='none'; return; }
+    var pa = loan.emis.filter(function(e){ return e.paid; }).reduce(function(s,e){ return s+e.amount; }, 0);
+    var baaki = loan.totalAmount - pa;
+    var addedInt = baaki * (loan.rate/100) * m;
+    var newEmi = Math.round((baaki + addedInt) / m);
+    preview.style.display = 'block';
+    preview.innerHTML = '✅ <b>'+m+' naye mahine</b> add honge<br>'+
+      '💰 Baaki amount: <b>'+fmt(baaki)+'</b><br>'+
+      '📈 Naya interest: <b>'+fmt(Math.round(addedInt))+'</b><br>'+
+      '💵 Naya EMI: <b>'+fmt(newEmi)+'/mahine</b>';
+  }
+
+  function confirmRenew() {
+    var loan = loans.find(function(l){ return l.id===renewLoanId; });
+    if (!loan) return;
+    var m = parseInt(document.getElementById('renewMonths').value);
+    if (!m || m<1) { showToast('❌ Mahine daalo!'); return; }
+    var lastEmi = loan.emis[loan.emis.length-1];
+    var lastDate = lastEmi ? new Date(lastEmi.dueDate) : new Date();
+    var pa = loan.emis.filter(function(e){ return e.paid; }).reduce(function(s,e){ return s+e.amount; }, 0);
+    var baaki = loan.totalAmount - pa;
+    var addedInt = baaki * (loan.rate/100) * m;
+    var newEmi = Math.round((baaki + addedInt) / m);
+    var startLen = loan.emis.length;
+    for (var i = 0; i < m; i++) {
+      var dd = new Date(lastDate.getFullYear(), lastDate.getMonth()+i+1, lastDate.getDate());
+      loan.emis.push({ month: startLen+i+1, dueDate: dd.toISOString().split('T')[0], amount: newEmi, paid: false, paidDate: null });
+    }
+    loan.months += m;
+    loan.totalInterest = Math.round(loan.totalInterest + addedInt);
+    loan.totalAmount = loan.emis.reduce(function(s,e){ return s+e.amount; }, 0);
+    saveData(); renderAll();
+    closeFeature('renewOverlay');
+    showToast('✅ '+loan.name+' ka loan '+m+' mahine extend ho gaya!');
+  }
+
+  // ===== APP CUSTOMIZE =====
+  function openCustomize() {
+    var cust = getCust();
+    custEmojiSelected = cust.emoji || '💰';
+    document.getElementById('custAppName').value = cust.name || '';
+    document.getElementById('custSubtitle').value = cust.subtitle || '';
+    updateCustPreview();
+    document.querySelectorAll('#emojiPicker span').forEach(function(el) {
+      el.style.border = el.getAttribute('data-emoji') === custEmojiSelected ? '2px solid var(--accent)' : '2px solid transparent';
+    });
+    document.getElementById('custOverlay').classList.add('show');
+  }
+  function getCust() {
+    try { return JSON.parse(localStorage.getItem(CUST_KEY)) || {}; } catch(e) { return {}; }
+  }
+  function selectEmoji(el) {
+    document.querySelectorAll('#emojiPicker span').forEach(function(e){ e.style.border='2px solid transparent'; });
+    el.style.border = '2px solid var(--accent)';
+    custEmojiSelected = el.getAttribute('data-emoji');
+    updateCustPreview();
+  }
+  function updateCustPreview() {
+    var name = document.getElementById('custAppName').value || 'Udhar Khata';
+    var sub = document.getElementById('custSubtitle').value || 'Apna Hisaab Saaf Rakho';
+    document.getElementById('custPreviewLogo').textContent = (custEmojiSelected||'💰') + ' ' + name;
+    document.getElementById('custPreviewSub').textContent = sub;
+  }
+  function saveCust() {
+    var name = document.getElementById('custAppName').value.trim() || 'Udhar Khata';
+    var sub = document.getElementById('custSubtitle').value.trim() || 'Apna Hisaab Saaf Rakho';
+    localStorage.setItem(CUST_KEY, JSON.stringify({ name:name, subtitle:sub, emoji:custEmojiSelected||'💰' }));
+    applyCustomization();
+    closeFeature('custOverlay');
+    showToast('🎨 App customize ho gaya!');
+  }
+  function resetCust() {
+    localStorage.removeItem(CUST_KEY);
+    custEmojiSelected = '💰';
+    document.getElementById('custAppName').value = '';
+    document.getElementById('custSubtitle').value = '';
+    applyCustomization();
+    updateCustPreview();
+    showToast('↩ Default pe wapas aa gaya!');
+  }
+  function applyCustomization() {
+    var cust = getCust();
+    var logoEl = document.querySelector('.logo');
+    if (logoEl) logoEl.textContent = (cust.emoji||'💰') + ' ' + (cust.name||'Udhar Khata');
+    document.title = (cust.name||'Udhar Khata');
+  }
+
+  // ===== MULTIPLE PROFILES =====
+  function openProfiles() {
+    renderProfilesList();
+    document.getElementById('profilesOverlay').classList.add('show');
+  }
+  function renderProfilesList() {
+    var list = getProfileList();
+    var active = getActiveProfileName();
+    document.getElementById('profilesList').innerHTML = list.map(function(p) {
+      var isActive = p === active;
+      var loansKey = 'udharKhata_v3'+(p==='Personal'?'':'_'+p);
+      var lCount = 0;
+      try { lCount = (JSON.parse(localStorage.getItem(loansKey))||[]).length; } catch(e){}
+      var icon = p==='Personal'?'👤':(p==='Business'?'🏢':(p==='Family'?'👨‍👩‍👧':'📂'));
+      return '<div class="profile-item'+(isActive?' active-profile':'')+'" onclick="'+(isActive?'':('switchToProfile(\''+p+'\')'))+'" style="cursor:'+(isActive?'default':'pointer')+'">'+
+        '<div class="profile-icon">'+icon+'</div>'+
+        '<div style="flex:1">'+
+          '<div class="profile-name">'+esc(p)+'</div>'+
+          '<div class="profile-meta">'+lCount+' loans</div>'+
+        '</div>'+
+        (isActive ? '<div class="profile-active-badge">✅ Active</div>' :
+          '<div style="display:flex;gap:6px">'+
+            '<div style="background:rgba(63,185,80,0.12);border:1px solid rgba(63,185,80,0.3);color:var(--green);border-radius:8px;padding:5px 12px;font-size:0.75rem;font-weight:700;cursor:pointer">Switch</div>'+
+            (p!=='Personal'?'<div onclick="event.stopPropagation();deleteProfileConfirm(\''+p+'\')" style="background:rgba(248,81,73,0.1);border:1px solid rgba(248,81,73,0.25);color:var(--red);border-radius:8px;padding:5px 10px;font-size:0.75rem;font-weight:700;cursor:pointer">✕</div>':'')+
+          '</div>')+
+      '</div>';
+    }).join('');
+  }
+  function switchToProfile(name) {
+    localStorage.setItem(PACTIVE_KEY, name);
+    updateStorageKeys();
+    loadData(); renderAll(); updateBinBadge(); updateOwnerDisplay();
+    renderProfilesList();
+    showToast('✅ "'+name+'" profile active ho gaya!');
+    closeFeature('profilesOverlay');
+  }
+  function addProfile() {
+    var name = document.getElementById('newProfileName').value.trim();
+    if (!name) { showToast('❌ Profile ka naam daalo!'); return; }
+    if (name.length > 20) { showToast('❌ 20 characters se kam rakho!'); return; }
+    var list = getProfileList();
+    if (list.indexOf(name) !== -1) { showToast('❌ Yeh profile pehle se hai!'); return; }
+    list.push(name);
+    saveProfileList(list);
+    document.getElementById('newProfileName').value = '';
+    renderProfilesList();
+    showToast('✅ "'+name+'" profile add ho gaya! Click karke switch karo.');
+  }
+  function deleteProfileConfirm(name) {
+    if (confirm('⚠️ "'+name+'" profile aur uska saara data delete hoga. Pakka?')) {
+      var list = getProfileList().filter(function(p){ return p!==name; });
+      saveProfileList(list);
+      var sfx = '_'+name;
+      ['udharKhata_v3','udharKhata_bin','udharKhata_profile'].forEach(function(k){ localStorage.removeItem(k+sfx); });
+      renderProfilesList();
+      showToast('✅ Profile delete ho gaya!');
+    }
+  }
+
+  // ===== PROFESSIONAL INVOICE PDF =====
+  function exportInvoicePDF(loanId) {
+    var loan = loans.find(function(l){ return l.id===loanId; });
+    if (!loan) return;
+    var pc = loan.emis.filter(function(e){ return e.paid; }).length;
+    var pa = loan.emis.filter(function(e){ return e.paid; }).reduce(function(s,e){ return s+e.amount; }, 0);
+    var baaki = loan.totalAmount - pa;
+    var done = pc === loan.months;
+    var owner = getProfile();
+    var cust = getCust();
+    var appName = cust.name || 'Udhar Khata';
+    var invoiceNum = 'INV-' + String(loan.id).slice(-6);
+
+    var emiRows = loan.emis.map(function(e) {
+      var od = !e.paid && e.dueDate < today;
+      var sc = e.paid ? '#16a34a' : (od ? '#dc2626' : '#92400e');
+      var bg = e.paid ? '#f0fdf4' : (od ? '#fef2f2' : '#fffbeb');
+      return '<tr style="background:'+bg+'">'+
+        '<td style="padding:9px 14px;text-align:center;font-weight:600;color:#6b7280;border-bottom:1px solid #f3f4f6">'+e.month+'</td>'+
+        '<td style="padding:9px 14px;color:#374151;border-bottom:1px solid #f3f4f6">'+fmtDate(e.dueDate)+'</td>'+
+        '<td style="padding:9px 14px;font-weight:700;color:#111827;border-bottom:1px solid #f3f4f6">₹'+Number(e.amount).toLocaleString('en-IN')+'</td>'+
+        '<td style="padding:9px 14px;font-weight:700;color:'+sc+';border-bottom:1px solid #f3f4f6">'+(e.paid?'✅ PAID':(od?'⚠️ OVERDUE':'⏳ PENDING'))+'</td>'+
+        '<td style="padding:9px 14px;color:#9ca3af;font-size:0.82em;border-bottom:1px solid #f3f4f6">'+(e.paidDate?fmtDate(e.paidDate):'-')+'</td>'+
+      '</tr>';
+    }).join('');
+
+    var html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Invoice '+invoiceNum+' — '+loan.name+'</title>'+
+    '<style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:-apple-system,Arial,sans-serif;background:#f9fafb;padding:30px;color:#111827}'+
+    '.wrap{max-width:720px;margin:0 auto;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.1)}'+
+    '.hdr{background:linear-gradient(135deg,#1a1a2e,#16213e);color:#fff;padding:28px 32px;display:flex;justify-content:space-between;align-items:flex-start}'+
+    '.hdr-app{font-size:1.5rem;font-weight:900;color:#f0a500}.hdr-sub{font-size:0.8rem;color:rgba(255,255,255,0.55);margin-top:3px}'+
+    '.hdr-num{text-align:right}.hdr-inv{font-size:1rem;font-weight:800;color:#f0a500}.hdr-dt{font-size:0.75rem;color:rgba(255,255,255,0.45);margin-top:3px}'+
+    '.parties{display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid #f3f4f6}'+
+    '.party{padding:22px 26px}.party+.party{border-left:1px solid #f3f4f6}'+
+    '.plabel{font-size:0.65rem;text-transform:uppercase;letter-spacing:1px;color:#9ca3af;font-weight:700;margin-bottom:7px}'+
+    '.pname{font-size:1.05rem;font-weight:900;color:#111827;margin-bottom:4px}.pmeta{font-size:0.8rem;color:#6b7280;line-height:1.7}'+
+    '.summary{display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid #f3f4f6}'+
+    '.sbox{padding:16px;text-align:center;border-right:1px solid #f3f4f6}.sbox:last-child{border-right:none}'+
+    '.slabel{font-size:0.62rem;text-transform:uppercase;letter-spacing:0.8px;color:#9ca3af;font-weight:700}'+
+    '.sval{font-size:1rem;font-weight:900;margin-top:5px}'+
+    'table{width:100%;border-collapse:collapse}thead tr{background:#f9fafb}'+
+    'thead th{padding:10px 14px;text-align:left;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.5px;color:#6b7280;font-weight:700;border-bottom:2px solid #f0a500}'+
+    '.footer{padding:18px 26px;background:#f9fafb;display:flex;justify-content:space-between;align-items:center;border-top:1px solid #f3f4f6}'+
+    '.footer-note{font-size:0.72rem;color:#9ca3af}.tot-label{font-size:0.7rem;color:#6b7280;text-transform:uppercase;letter-spacing:0.5px;text-align:right}'+
+    '.tot-val{font-size:1.4rem;font-weight:900;color:'+(done?'#16a34a':'#dc2626')+';text-align:right}'+
+    (done?'.wm{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-25deg);font-size:4.5rem;font-weight:900;color:rgba(22,163,74,0.07);pointer-events:none;z-index:0;white-space:nowrap}':'')+
+    '@media print{body{background:#fff;padding:10px}.no-print{display:none}.wrap{box-shadow:none;border-radius:0}}'+
+    '</style></head><body>'+
+    (done?'<div class="wm">✅ FULLY PAID</div>':'')+
+    '<div class="wrap">'+
+      '<div class="hdr">'+
+        '<div><div class="hdr-app">'+(cust.emoji||'💰')+' '+appName+'</div>'+
+        '<div class="hdr-sub">'+(owner&&owner.city?'📍 '+owner.city:'Loan Manager')+'</div></div>'+
+        '<div class="hdr-num"><div class="hdr-inv">'+invoiceNum+'</div><div class="hdr-dt">'+fmtDate(today)+'</div></div>'+
+      '</div>'+
+      '<div class="parties">'+
+        '<div class="party"><div class="plabel">From — Lender</div><div class="pname">'+(owner&&owner.name?esc(owner.name):'—')+'</div><div class="pmeta">'+(owner&&owner.city?'📍 '+esc(owner.city):'')+'</div></div>'+
+        '<div class="party"><div class="plabel">To — Borrower</div><div class="pname">'+esc(loan.name)+'</div><div class="pmeta">'+(loan.phone?'📱 +'+loan.phone+'<br>':'')+'📅 Since: '+fmtDate(loan.startDate)+(loan.note?'<br>📝 '+esc(loan.note):'')+'</div></div>'+
+      '</div>'+
+      '<div class="summary">'+
+        '<div class="sbox"><div class="slabel">Principal</div><div class="sval" style="color:#d97706">₹'+Number(loan.principal).toLocaleString('en-IN')+'</div></div>'+
+        '<div class="sbox"><div class="slabel">Interest</div><div class="sval" style="color:#7c3aed">₹'+Number(loan.totalInterest).toLocaleString('en-IN')+'</div></div>'+
+        '<div class="sbox"><div class="slabel">Paid</div><div class="sval" style="color:#16a34a">₹'+Number(pa).toLocaleString('en-IN')+'</div></div>'+
+        '<div class="sbox"><div class="slabel">Balance</div><div class="sval" style="color:'+(baaki>0?'#dc2626':'#16a34a')+'">₹'+Number(baaki).toLocaleString('en-IN')+'</div></div>'+
+      '</div>'+
+      '<div style="padding:16px 20px 0"><table><thead><tr><th>#</th><th>Due Date</th><th>Amount</th><th>Status</th><th>Paid On</th></tr></thead><tbody>'+emiRows+'</tbody></table></div>'+
+      '<div class="footer">'+
+        '<div class="footer-note">'+appName+' · '+fmtDate(today)+'<br>'+pc+'/'+loan.months+' EMI paid · '+Math.round((pc/loan.months)*100)+'% complete</div>'+
+        '<div><div class="tot-label">Balance Due</div><div class="tot-val">₹'+Number(baaki).toLocaleString('en-IN')+'</div></div>'+
+      '</div>'+
+    '</div>'+
+    '<div class="no-print" style="text-align:center;margin-top:18px">'+
+      '<button onclick="window.print()" style="background:#d4920a;color:#fff;border:none;border-radius:10px;padding:12px 28px;font-size:0.95rem;font-weight:700;cursor:pointer">🖨️ Print / Save PDF</button>'+
+    '</div></body></html>';
+
+    var win = window.open('', '_blank');
+    win.document.write(html);
+    win.document.close();
+    showToast('🖨️ '+loan.name+' ka Professional Invoice ready!');
+  }
+
   loadTheme();
   loadData();
   renderAll();
   updateBinBadge();
   updateOwnerDisplay();
+  applyCustomization();
+  document.getElementById('langBtn').textContent = LANG === 'hi' ? '🌐 English' : '🌐 हिंदी';
   document.getElementById('startDate').valueAsDate = new Date();
 
   (function() {
