@@ -2595,6 +2595,7 @@
   }
 
   function updateCloudBtn(active) {
+    var btn = document.getElementById('cloudSetupBtn');
     if (!btn) return;
     btn.textContent = active ? '☁️ Cloud ✅' : '⚙️ Cloud';
     btn.style.color = active ? 'var(--green)' : 'var(--muted)';
