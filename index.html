@@ -1,0 +1,1533 @@
+<!DOCTYPE html>
+<html lang="hi" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Udhar Khata">
+<meta name="theme-color" content="#f0a500">
+<meta name="description" content="Apna udhar ka hisaab rakho — EMI tracker, loan manager">
+<link rel="manifest" href="manifest.json">
+<title>Udhar Khata</title>
+<style>
+  :root {
+    --bg: #0d1117; --surface: #161b22; --card: #1c2333; --border: #30363d;
+    --accent: #f0a500; --accent2: #ff6b35; --green: #3fb950; --red: #f85149;
+    --text: #e6edf3; --muted: #8b949e; --radius: 16px; --overdue: #ff4444;
+  }
+  [data-theme="light"] {
+    --bg: #f5f7fa; --surface: #ffffff; --card: #ffffff; --border: #e1e5ea;
+    --accent: #d4920a; --accent2: #e05a20; --green: #2da44e; --red: #cf222e;
+    --text: #1c2128; --muted: #57606a; --overdue: #cf222e;
+  }
+  #lockScreen {
+    position: fixed; inset: 0; background: var(--bg); z-index: 9999;
+    display: flex; align-items: center; justify-content: center; padding: 20px;
+  }
+  #lockScreen.hidden { display: none; }
+  .lock-box {
+    background: var(--card); border: 1px solid var(--border); border-radius: 24px;
+    padding: 36px 28px; width: 100%; max-width: 360px; text-align: center;
+  }
+  .lock-icon { font-size: 3rem; margin-bottom: 12px; }
+  .lock-title { font-size: 1.4rem; font-weight: 800; color: var(--text); margin-bottom: 6px; }
+  .lock-sub { color: var(--muted); font-size: 0.9rem; margin-bottom: 24px; }
+  .lock-input {
+    width: 100%; background: var(--surface); border: 1.5px solid var(--border);
+    border-radius: 12px; padding: 14px 16px; color: var(--text);
+    font-size: 1.2rem; text-align: center; letter-spacing: 6px;
+    font-family: inherit; outline: none; -webkit-appearance: none; margin-bottom: 14px;
+  }
+  .lock-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(240,165,0,0.15); }
+  .lock-input.wrong { border-color: var(--red); animation: shake 0.4s ease; }
+  @keyframes shake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-8px)} 60%{transform:translateX(8px)} }
+  .btn-unlock {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: #fff; border: none; border-radius: 12px; padding: 14px;
+    font-size: 1rem; font-weight: 700; font-family: inherit; cursor: pointer; width: 100%;
+  }
+  .lock-hint { color: var(--muted); font-size: 0.78rem; margin-top: 12px; }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: -apple-system, 'Helvetica Neue', Arial, sans-serif;
+    min-height: 100vh; padding: 16px; padding-bottom: 40px;
+    -webkit-text-size-adjust: 100%; transition: background 0.3s, color 0.3s;
+  }
+  body::before {
+    content: ''; position: fixed; inset: 0;
+    background: radial-gradient(ellipse 80% 50% at 10% 0%, rgba(240,165,0,0.08) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 60% at 90% 100%, rgba(255,107,53,0.06) 0%, transparent 60%);
+    pointer-events: none; z-index: 0;
+  }
+  [data-theme="light"] body::before { display: none; }
+  .container { max-width: 680px; margin: 0 auto; position: relative; z-index: 1; }
+  header { text-align: center; padding: 24px 0 28px; }
+  .logo {
+    font-size: 2.2rem; font-weight: 800;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  }
+  .subtitle { color: var(--muted); font-size: 0.9rem; margin-top: 4px; }
+  .header-btns { display: flex; gap: 8px; justify-content: center; margin-top: 16px; flex-wrap: wrap; }
+  .btn-header {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 20px;
+    padding: 7px 14px; font-size: 0.8rem; font-weight: 600; color: var(--muted);
+    cursor: pointer; font-family: inherit;
+  }
+  .btn-header:active { border-color: var(--accent); color: var(--accent); }
+  .toast {
+    position: fixed; bottom: 30px; left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: #2ea043; color: #fff; padding: 12px 24px;
+    border-radius: 24px; font-weight: 600; font-size: 0.9rem;
+    z-index: 9998; transition: transform 0.3s ease; white-space: nowrap;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+  .search-bar {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 12px 16px; margin-bottom: 20px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .search-bar input {
+    flex: 1; background: none; border: none; outline: none;
+    color: var(--text); font-size: 0.95rem; font-family: inherit;
+  }
+  .search-bar input::placeholder { color: var(--muted); }
+  .filter-select {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; padding: 6px 10px; color: var(--text);
+    font-family: inherit; font-size: 0.82rem; outline: none; cursor: pointer;
+  }
+  .form-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 20px; margin-bottom: 24px;
+    position: relative; overflow: hidden;
+  }
+  .form-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+  }
+  .form-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 18px; color: var(--accent); }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+  .field-full { grid-column: 1 / -1; }
+  .field label { display: block; font-size: 0.75rem; color: var(--muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
+  .field input, .field textarea {
+    width: 100%; background: var(--surface); border: 1.5px solid var(--border);
+    border-radius: 10px; padding: 12px 14px; color: var(--text);
+    font-family: inherit; font-size: 1rem; outline: none; -webkit-appearance: none; appearance: none;
+  }
+  .field textarea { resize: none; height: 70px; font-size: 0.9rem; }
+  .field input:focus, .field textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(240,165,0,0.15); }
+  .btn-add {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: #fff; border: none; border-radius: 12px; padding: 14px;
+    font-size: 1rem; font-weight: 700; font-family: inherit; cursor: pointer; width: 100%;
+  }
+  .btn-add:active { opacity: 0.85; }
+  .stats-bar { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
+  .stat-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 10px; text-align: center; }
+  .stat-label { font-size: 0.68rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.4px; font-weight: 600; }
+  .stat-value { font-size: 1.25rem; font-weight: 800; margin-top: 4px; }
+  .stat-value.gold { color: var(--accent); }
+  .stat-value.green { color: var(--green); }
+  .stat-value.red { color: var(--red); }
+  .export-bar { display: flex; gap: 10px; margin-bottom: 20px; }
+  .btn-export {
+    flex: 1; background: var(--card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 10px; font-size: 0.82rem; font-weight: 700;
+    color: var(--text); cursor: pointer; font-family: inherit;
+  }
+  .btn-export:active { border-color: var(--accent); color: var(--accent); }
+  .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+  .section-title { font-size: 0.85rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+  .loans-count { font-size: 0.78rem; color: var(--muted); }
+  .loans-list { display: flex; flex-direction: column; gap: 16px; }
+  .loan-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+  .loan-card.fully-paid { border-color: rgba(63,185,80,0.35); }
+  .loan-card.has-overdue { border-color: rgba(255,68,68,0.45); }
+  .loan-header { display: flex; justify-content: space-between; align-items: flex-start; padding: 16px; border-bottom: 1px solid var(--border); }
+  .borrower-name { font-size: 1.15rem; font-weight: 800; }
+  .loan-since { font-size: 0.75rem; color: var(--muted); margin-top: 2px; }
+  .loan-note-preview { font-size: 0.78rem; color: var(--muted); margin-top: 4px; font-style: italic; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .header-right { display: flex; align-items: center; gap: 8px; }
+  .loan-badge { padding: 4px 10px; border-radius: 20px; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; }
+  .badge-active { background: rgba(240,165,0,0.15); color: var(--accent); border: 1px solid rgba(240,165,0,0.3); }
+  .badge-done { background: rgba(63,185,80,0.15); color: var(--green); border: 1px solid rgba(63,185,80,0.3); }
+  .badge-overdue { background: rgba(255,68,68,0.15); color: var(--overdue); border: 1px solid rgba(255,68,68,0.3); }
+  .btn-delete { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 1.1rem; padding: 4px 6px; border-radius: 6px; font-family: inherit; }
+  .btn-delete:active { color: var(--red); }
+  .loan-details { display: grid; grid-template-columns: repeat(3, 1fr); border-bottom: 1px solid var(--border); }
+  .detail-item { padding: 12px 14px; border-right: 1px solid var(--border); }
+  .detail-item:nth-child(3), .detail-item:nth-child(6) { border-right: none; }
+  .detail-item:nth-child(4), .detail-item:nth-child(5), .detail-item:nth-child(6) { border-top: 1px solid var(--border); }
+  .detail-label { font-size: 0.68rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.4px; font-weight: 600; }
+  .detail-value { font-size: 1rem; font-weight: 700; margin-top: 2px; }
+  .detail-value.gold { color: var(--accent); }
+  .detail-value.green { color: var(--green); }
+  .detail-value.red { color: var(--red); }
+  .detail-value.purple { color: #a371f7; }
+  .detail-value.orange { color: var(--accent2); }
+  .notes-section { padding: 10px 16px; border-bottom: 1px solid var(--border); }
+  .notes-display { font-size: 0.85rem; color: var(--muted); font-style: italic; }
+  .notes-edit-area {
+    width: 100%; background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; padding: 8px 10px; color: var(--text);
+    font-family: inherit; font-size: 0.85rem; resize: none; height: 60px;
+    outline: none; margin-top: 6px; display: none;
+  }
+  .notes-edit-area.open { display: block; }
+  .btn-note-toggle { background: none; border: none; color: var(--muted); font-size: 0.78rem; font-weight: 600; cursor: pointer; font-family: inherit; padding: 2px 0; }
+  .btn-note-save {
+    background: var(--accent); color: #fff; border: none; border-radius: 6px;
+    padding: 5px 12px; font-size: 0.78rem; font-weight: 700; cursor: pointer; font-family: inherit; margin-top: 6px;
+  }
+  .progress-section { padding: 12px 16px; border-bottom: 1px solid var(--border); }
+  .progress-meta { display: flex; justify-content: space-between; font-size: 0.78rem; color: var(--muted); margin-bottom: 8px; }
+  .progress-bar { height: 7px; background: var(--surface); border-radius: 4px; overflow: hidden; }
+  .progress-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, var(--accent), var(--accent2)); transition: width 0.4s ease; }
+  .progress-fill.done { background: linear-gradient(90deg, #3fb950, #2ea043); }
+  .emi-section { padding: 12px 16px; }
+  .emi-toggle {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+    padding: 9px 14px; color: var(--muted); font-family: inherit; font-size: 0.85rem;
+    font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px;
+    width: 100%; justify-content: center;
+  }
+  .emi-table { display: none; margin-top: 12px; }
+  .emi-table.open { display: block; }
+  .emi-row { display: grid; grid-template-columns: 30px 1fr 1fr 110px; align-items: center; gap: 6px; padding: 9px 8px; border-radius: 8px; margin-bottom: 4px; font-size: 0.82rem; }
+  .emi-row.header { background: var(--surface); color: var(--muted); font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700; }
+  .emi-row.paid-row { opacity: 0.5; }
+  .emi-row.overdue-row { background: rgba(255,68,68,0.08); border: 1px solid rgba(255,68,68,0.2); }
+  .overdue-badge { font-size: 0.62rem; background: rgba(255,68,68,0.15); color: var(--overdue); border-radius: 4px; padding: 1px 4px; font-weight: 700; display:block; margin-top:2px; }
+  .btn-pay { background: rgba(248,81,73,0.15); border: 1px solid rgba(248,81,73,0.4); color: var(--red); border-radius: 6px; padding: 6px 8px; font-size: 0.72rem; font-weight: 700; font-family: inherit; cursor: pointer; white-space: nowrap; }
+  .btn-pay:active { background: rgba(248,81,73,0.35); }
+  .btn-unpay { background: rgba(63,185,80,0.15); border: 1px solid rgba(63,185,80,0.4); color: var(--green); border-radius: 6px; padding: 6px 8px; font-size: 0.72rem; font-weight: 700; font-family: inherit; cursor: pointer; white-space: nowrap; }
+  .btn-unpay:active { background: rgba(63,185,80,0.35); }
+  .whatsapp-btn {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    background: rgba(37,211,102,0.1); border: 1px solid rgba(37,211,102,0.3);
+    color: #25d366; border-radius: 8px; padding: 9px 14px;
+    font-size: 0.82rem; font-weight: 700; cursor: pointer; font-family: inherit;
+    margin-top: 10px; width: 100%;
+  }
+  .whatsapp-btn:active { background: rgba(37,211,102,0.25); }
+  .loan-action-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
+  .btn-loan-export {
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; padding: 9px 10px; font-size: 0.8rem; font-weight: 700;
+    color: var(--muted); cursor: pointer; font-family: inherit; width: 100%;
+  }
+  .btn-loan-export:active { border-color: var(--accent); color: var(--accent); }
+  .confirm-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 1000; align-items: flex-end; justify-content: center; padding: 20px; }
+  .confirm-overlay.show { display: flex; }
+  .confirm-box { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 24px; width: 100%; max-width: 400px; text-align: center; }
+  .confirm-box h3 { font-size: 1.1rem; margin-bottom: 8px; color: var(--text); }
+  .confirm-box p { color: var(--muted); font-size: 0.9rem; margin-bottom: 20px; }
+  .confirm-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .btn-cancel { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 12px; font-family: inherit; font-size: 0.95rem; font-weight: 600; color: var(--text); cursor: pointer; }
+  .btn-confirm-del { background: rgba(248,81,73,0.2); border: 1px solid rgba(248,81,73,0.4); border-radius: 10px; padding: 12px; font-family: inherit; font-size: 0.95rem; font-weight: 700; color: var(--red); cursor: pointer; }
+  .btn-move-bin { background: rgba(240,165,0,0.15); border: 1px solid rgba(240,165,0,0.35); border-radius: 10px; padding: 12px; font-family: inherit; font-size: 0.95rem; font-weight: 700; color: var(--accent); cursor: pointer; }
+
+  /* BIN OVERLAY */
+  .bin-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 1001; align-items: flex-end; justify-content: center; padding: 0; }
+  .bin-overlay.show { display: flex; }
+  .bin-box { background: var(--card); border: 1px solid var(--border); border-radius: 24px 24px 0 0; padding: 24px 20px; width: 100%; max-width: 600px; max-height: 85vh; overflow-y: auto; }
+  .bin-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+  .btn-close-bin { background: var(--surface); border: 1px solid var(--border); border-radius: 50%; width: 34px; height: 34px; font-size: 1rem; cursor: pointer; color: var(--muted); font-family: inherit; }
+  .bin-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 14px 16px; margin-bottom: 12px; }
+  .bin-card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+  .bin-name { font-size: 1.05rem; font-weight: 800; }
+  .bin-meta { font-size: 0.75rem; color: var(--muted); margin-top: 3px; }
+  .bin-amounts { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-bottom: 12px; }
+  .bin-amt-item { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 8px; text-align: center; }
+  .bin-amt-label { font-size: 0.65rem; color: var(--muted); text-transform: uppercase; font-weight: 600; letter-spacing: 0.4px; }
+  .bin-amt-val { font-size: 0.95rem; font-weight: 800; margin-top: 2px; }
+  .bin-emi-mini { font-size: 0.78rem; color: var(--muted); margin-bottom: 10px; }
+  .bin-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .btn-restore { background: rgba(63,185,80,0.15); border: 1px solid rgba(63,185,80,0.35); border-radius: 8px; padding: 9px; font-size: 0.82rem; font-weight: 700; color: var(--green); cursor: pointer; font-family: inherit; }
+  .btn-perm-del { background: rgba(248,81,73,0.12); border: 1px solid rgba(248,81,73,0.3); border-radius: 8px; padding: 9px; font-size: 0.82rem; font-weight: 700; color: var(--red); cursor: pointer; font-family: inherit; }
+  .btn-empty-bin { background: rgba(248,81,73,0.12); border: 1px solid rgba(248,81,73,0.3); border-radius: 10px; padding: 10px 18px; font-size: 0.85rem; font-weight: 700; color: var(--red); cursor: pointer; font-family: inherit; width: 100%; margin-top: 4px; }
+  .settings-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 1000; align-items: center; justify-content: center; padding: 20px; }
+  .settings-overlay.show { display: flex; }
+  .settings-box { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 24px; width: 100%; max-width: 360px; }
+  .settings-box h3 { font-size: 1.1rem; font-weight: 700; color: var(--text); margin-bottom: 18px; }
+  .settings-box input { width: 100%; background: var(--surface); border: 1.5px solid var(--border); border-radius: 10px; padding: 12px 14px; color: var(--text); font-family: inherit; font-size: 0.95rem; outline: none; margin-bottom: 12px; }
+  .settings-box input:focus { border-color: var(--accent); }
+  .btn-save-pw { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; border: none; border-radius: 10px; padding: 12px; font-family: inherit; font-size: 0.95rem; font-weight: 700; cursor: pointer; width: 100%; margin-bottom: 10px; }
+  .btn-close-set { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 10px; font-family: inherit; font-size: 0.9rem; font-weight: 600; color: var(--muted); cursor: pointer; width: 100%; }
+  .empty-state { text-align: center; padding: 50px 20px; color: var(--muted); }
+  .empty-state .icon { font-size: 2.5rem; margin-bottom: 10px; }
+  .empty-state p { font-size: 0.95rem; }
+  @media (max-width: 380px) {
+    .stats-bar { grid-template-columns: 1fr 1fr; }
+    .stats-bar .stat-card:last-child { grid-column: 1 / -1; }
+    .loan-details { grid-template-columns: 1fr 1fr; }
+    .detail-item:nth-child(2n) { border-right: none; }
+    .detail-item:nth-child(3) { border-right: 1px solid var(--border); }
+    .detail-item:nth-child(4), .detail-item:nth-child(5), .detail-item:nth-child(6) { border-top: 1px solid var(--border); }
+    .detail-item:nth-child(6) { border-right: none; }
+  }
+  @media print {
+    #lockScreen, .btn-header, .header-btns, .search-bar, .export-bar, .form-card,
+    .btn-delete, .emi-toggle, .emi-table, .btn-pay, .btn-unpay,
+    .whatsapp-btn, .confirm-overlay, .settings-overlay, .toast,
+    .btn-note-toggle, .notes-edit-area, .btn-note-save { display: none !important; }
+    body { background: white; color: black; padding: 10px; }
+    .loan-card { border: 1px solid #ccc; margin-bottom: 12px; page-break-inside: avoid; }
+    .stat-card { border: 1px solid #ccc; }
+    .detail-value, .borrower-name, .stat-value { color: black !important; -webkit-text-fill-color: black !important; }
+    .logo { -webkit-text-fill-color: #d4920a !important; }
+  }
+
+  /* ===== SETUP + RESTORE SCREENS ===== */
+  .fullscreen-overlay {
+    position: fixed; inset: 0; background: var(--bg); z-index: 10000;
+    display: flex; align-items: center; justify-content: center;
+    padding: 20px; overflow-y: auto;
+  }
+  .fullscreen-overlay.hidden { display: none; }
+  .setup-box {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 24px; padding: 30px 24px; width: 100%; max-width: 420px;
+    position: relative; overflow: hidden;
+  }
+  .setup-box::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+  }
+  .setup-emoji { font-size: 3rem; text-align: center; margin-bottom: 8px; }
+  .setup-title { font-size: 1.3rem; font-weight: 900; text-align: center; color: var(--text); margin-bottom: 5px; }
+  .setup-sub { color: var(--muted); font-size: 0.84rem; text-align: center; margin-bottom: 22px; line-height: 1.6; }
+  .setup-label { font-size: 0.72rem; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; margin-top: 14px; display: block; }
+  .setup-input {
+    width: 100%; background: var(--surface); border: 1.5px solid var(--border);
+    border-radius: 12px; padding: 13px 16px; color: var(--text);
+    font-family: inherit; font-size: 1rem; outline: none; -webkit-appearance: none;
+  }
+  .setup-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(240,165,0,0.15); }
+  .setup-cities { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+  .city-chip {
+    background: var(--surface); border: 1.5px solid var(--border);
+    border-radius: 20px; padding: 6px 14px; font-size: 0.8rem; font-weight: 600;
+    color: var(--muted); cursor: pointer; font-family: inherit;
+  }
+  .city-chip.selected { background: rgba(240,165,0,0.15); border-color: var(--accent); color: var(--accent); }
+  .btn-setup-primary {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: #fff; border: none; border-radius: 13px; padding: 14px;
+    font-size: 1rem; font-weight: 800; font-family: inherit;
+    cursor: pointer; width: 100%; margin-top: 20px;
+  }
+  .btn-setup-secondary {
+    background: var(--surface); border: 1.5px solid var(--border); border-radius: 13px;
+    padding: 12px; font-size: 0.9rem; font-weight: 700; font-family: inherit;
+    cursor: pointer; width: 100%; margin-top: 10px; color: var(--text);
+  }
+  .restore-card {
+    background: var(--surface); border: 1.5px solid var(--border); border-radius: 14px;
+    padding: 16px; margin-bottom: 12px; cursor: pointer; width: 100%; text-align: left;
+    font-family: inherit; display: flex; align-items: center; gap: 14px;
+  }
+  .restore-card:active { border-color: var(--accent); }
+  .restore-card-icon { font-size: 2rem; flex-shrink: 0; }
+  .restore-card-title { font-size: 0.95rem; font-weight: 800; color: var(--text); }
+  .restore-card-desc { font-size: 0.78rem; color: var(--muted); margin-top: 3px; line-height: 1.5; }
+  .setup-divider { display: flex; align-items: center; gap: 10px; margin: 16px 0; }
+  .setup-divider hr { flex: 1; border: none; border-top: 1px solid var(--border); }
+  .setup-divider span { color: var(--muted); font-size: 0.75rem; white-space: nowrap; }
+  .owner-badge {
+    background: rgba(240,165,0,0.1); border: 1px solid rgba(240,165,0,0.25);
+    border-radius: 10px; padding: 8px 14px; font-size: 0.82rem; color: var(--accent);
+    font-weight: 600; text-align: center; margin-bottom: 14px;
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== SETUP SCREEN — pehli baar ===== -->
+<!-- ══════════════════════════════════════════
+     WELCOME DIALOG — Pehli baar ya data clear hone par
+     ══════════════════════════════════════════ -->
+<div id="welcomeScreen" class="fullscreen-overlay hidden">
+  <div class="setup-box" style="overflow:hidden;padding:0">
+
+    <!-- Single sliding container -->
+    <div id="wSlider" style="display:flex;transition:transform 0.35s cubic-bezier(0.4,0,0.2,1);width:300%">
+
+      <!-- ── PANEL 1: Choose ── -->
+      <div style="width:33.33%;flex-shrink:0;padding:28px 24px">
+        <div style="text-align:center;margin-bottom:4px">
+          <div style="font-size:3rem;line-height:1">💰</div>
+          <div style="font-size:1.5rem;font-weight:900;margin:10px 0 4px;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">Udhar Khata</div>
+          <div style="color:var(--muted);font-size:0.84rem;line-height:1.7">Swagat hai! 🙏<br>Pehli baar hai ya pehle se use kar rahe the?</div>
+        </div>
+
+        <div style="height:1px;background:var(--border);margin:20px 0"></div>
+
+        <button onclick="goToSetup()" style="display:flex;align-items:center;gap:14px;width:100%;background:linear-gradient(135deg,rgba(240,165,0,0.12),rgba(255,107,53,0.08));border:1.5px solid rgba(240,165,0,0.4);border-radius:14px;padding:16px;cursor:pointer;font-family:inherit;margin-bottom:12px;text-align:left">
+          <div style="font-size:2rem;flex-shrink:0">🆕</div>
+          <div>
+            <div style="font-weight:800;color:var(--text);font-size:0.95rem">Naya Shuru Karo</div>
+            <div style="font-size:0.78rem;color:var(--muted);margin-top:3px;line-height:1.5">Pehli baar use kar rahe hain —<br>naam, shehar aur password set karein</div>
+          </div>
+          <div style="margin-left:auto;color:var(--accent);font-size:1.3rem;font-weight:900">→</div>
+        </button>
+
+        <button onclick="goToRestore()" style="display:flex;align-items:center;gap:14px;width:100%;background:var(--surface);border:1.5px solid var(--border);border-radius:14px;padding:16px;cursor:pointer;font-family:inherit;text-align:left">
+          <div style="font-size:2rem;flex-shrink:0">♻️</div>
+          <div>
+            <div style="font-weight:800;color:var(--text);font-size:0.95rem">Backup Se Restore Karo</div>
+            <div style="font-size:0.78rem;color:var(--muted);margin-top:3px;line-height:1.5">Pehle se use kar rahe the, data clear hua —<br>apni <b style="color:var(--accent)">.json backup file</b> chunein</div>
+          </div>
+          <div style="margin-left:auto;color:var(--muted);font-size:1.3rem;font-weight:900">→</div>
+        </button>
+
+        <div style="margin-top:18px;text-align:center;font-size:0.71rem;color:var(--muted);line-height:1.7">
+          🔒 Data sirf <b>aapke device</b> par · Koi server nahi · 100% private
+        </div>
+      </div>
+
+      <!-- ── PANEL 2: Setup Form ── -->
+      <div style="width:33.33%;flex-shrink:0;padding:24px 24px 28px">
+        <button onclick="backToStep1()" style="background:none;border:none;color:var(--muted);font-size:0.82rem;cursor:pointer;font-family:inherit;padding:0;margin-bottom:18px;display:flex;align-items:center;gap:5px">← Wapas</button>
+
+        <div style="text-align:center;margin-bottom:20px">
+          <div style="font-size:2rem">📝</div>
+          <div style="font-size:1.2rem;font-weight:900;color:var(--text);margin-top:6px">Apni Jankari Bharo</div>
+          <div style="color:var(--muted);font-size:0.82rem;margin-top:4px">Sirf aapke device pe save hogi 🔒</div>
+        </div>
+
+        <label class="setup-label">👤 Aapka Naam / Dukaan ka Naam</label>
+        <input class="setup-input" id="setupOwnerName" type="text" placeholder="Jaise: Ramesh / Sharma Store" autocapitalize="words" style="margin-bottom:14px" />
+
+        <label class="setup-label">📍 Shehar / Location</label>
+        <input class="setup-input" id="setupCity" type="text" placeholder="Type karein ya neeche se chunein..." autocapitalize="words" oninput="clearCityChips()" style="margin-bottom:10px" />
+        <div style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:16px">
+          <button class="city-chip" onclick="selectCity('Jaipur')">Jaipur</button>
+          <button class="city-chip" onclick="selectCity('Delhi')">Delhi</button>
+          <button class="city-chip" onclick="selectCity('Mumbai')">Mumbai</button>
+          <button class="city-chip" onclick="selectCity('Surat')">Surat</button>
+          <button class="city-chip" onclick="selectCity('Ahmedabad')">Ahmedabad</button>
+          <button class="city-chip" onclick="selectCity('Lucknow')">Lucknow</button>
+          <button class="city-chip" onclick="selectCity('Indore')">Indore</button>
+          <button class="city-chip" onclick="selectCity('Patna')">Patna</button>
+          <button class="city-chip" onclick="selectCity('Kanpur')">Kanpur</button>
+          <button class="city-chip" onclick="selectCity('Bhopal')">Bhopal</button>
+        </div>
+
+        <label class="setup-label">🔑 Password Set Karein</label>
+        <input class="setup-input" id="setupPassword" type="password" placeholder="4-10 digit  (khaali = default 1234)" inputmode="numeric" maxlength="10" style="margin-bottom:6px" />
+        <div style="font-size:0.71rem;color:var(--muted);margin-bottom:16px">💡 Baad mein Settings se badal sakte hain</div>
+
+        <button class="btn-setup-primary" onclick="completeSetup()">🚀 Shuru Karein!</button>
+      </div>
+
+      <!-- ── PANEL 3: Restore ── -->
+      <div style="width:33.33%;flex-shrink:0;padding:24px 24px 28px">
+        <button onclick="backToStep1()" style="background:none;border:none;color:var(--muted);font-size:0.82rem;cursor:pointer;font-family:inherit;padding:0;margin-bottom:18px;display:flex;align-items:center;gap:5px">← Wapas</button>
+
+        <div style="text-align:center;margin-bottom:22px">
+          <div style="font-size:2rem">♻️</div>
+          <div style="font-size:1.2rem;font-weight:900;color:var(--text);margin-top:6px">Backup Se Restore</div>
+          <div style="color:var(--muted);font-size:0.82rem;margin-top:4px">Apni pehle download ki hui backup file chunein</div>
+        </div>
+
+        <button onclick="document.getElementById('restoreFileInput').click()" style="display:flex;align-items:center;gap:14px;width:100%;background:linear-gradient(135deg,rgba(240,165,0,0.1),rgba(255,107,53,0.06));border:2px dashed rgba(240,165,0,0.45);border-radius:14px;padding:20px 16px;cursor:pointer;font-family:inherit;text-align:left;margin-bottom:16px">
+          <div style="font-size:2.5rem;flex-shrink:0">📂</div>
+          <div>
+            <div style="font-weight:800;color:var(--accent);font-size:0.95rem">File Choose Karein</div>
+            <div style="font-size:0.78rem;color:var(--muted);margin-top:4px;line-height:1.6"><b>_Backup_.json</b> file dhundho —<br>Downloads, WhatsApp ya Drive mein hogi</div>
+          </div>
+        </button>
+        <input type="file" id="restoreFileInput" accept=".json" style="display:none" onchange="restoreFromFile(event)" />
+
+        <div style="background:rgba(63,185,80,0.08);border:1px solid rgba(63,185,80,0.25);border-radius:10px;padding:12px 14px;font-size:0.78rem;color:var(--muted);line-height:1.6">
+          ✅ File choose hote hi saara data automatically wapas aa jaayega — loans, EMI schedule, sab kuch!
+        </div>
+      </div>
+
+    </div><!-- /wSlider -->
+  </div><!-- /setup-box -->
+</div>
+
+<div id="lockScreen">
+  <div class="lock-box">
+    <div class="lock-icon">🔐</div>
+    <div class="lock-title">Udhar Khata</div>
+    <div class="lock-sub" id="lockOwnerLabel">Password enter karke open karo</div>
+    <input type="password" class="lock-input" id="lockInput" placeholder="••••" maxlength="10"
+      onkeydown="if(event.key==='Enter') checkPassword()" inputmode="numeric" />
+    <button class="btn-unlock" onclick="checkPassword()">🔓 Open Karo</button>
+    <div class="lock-hint" id="lockHint">Default password: 1234</div>
+  </div>
+</div>
+
+<div class="container">
+  <header>
+    <div class="logo">💰 Udhar Khata</div>
+    <div class="subtitle" id="ownerInfoDisplay">Apna Hisaab Saaf Rakho</div>
+    <div class="header-btns">
+      <button class="btn-header" onclick="toggleTheme()"><span id="themeIcon">☀️</span> <span id="themeText">Light Mode</span></button>
+      <button class="btn-header" onclick="document.getElementById('settingsOverlay').classList.add('show')">🔑 Password</button>
+      <button class="btn-header" onclick="openBin()">🗑️ Bin <span id="binBadge"></span></button>
+      <button class="btn-header" onclick="downloadBackup()">💾 Backup</button>
+      <button class="btn-header" onclick="lockApp()">🔒 Lock</button>
+    </div>
+  </header>
+
+  <div class="search-bar">
+    <span>🔍</span>
+    <input type="text" id="searchInput" placeholder="Naam se dhundho..." oninput="renderAll()" autocomplete="off" />
+    <select class="filter-select" id="filterSelect" onchange="renderAll()">
+      <option value="all">Sab</option>
+      <option value="active">Active</option>
+      <option value="paid">Cleared</option>
+      <option value="overdue">Overdue</option>
+    </select>
+  </div>
+
+  <div class="form-card">
+    <div class="form-title">➕ Naya Loan Add Karo</div>
+    <div class="form-grid">
+      <div class="field field-full">
+        <label>Borrower Ka Naam</label>
+        <input type="text" id="borrowerName" placeholder="Jaise: Rahul" autocomplete="off" autocapitalize="words" />
+      </div>
+      <div class="field field-full">
+        <label>📱 Mobile / WhatsApp Number</label>
+        <div style="display:flex;gap:8px;align-items:center">
+          <span style="background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:12px 10px;color:var(--muted);font-size:0.95rem;white-space:nowrap">🇮🇳 +91</span>
+          <input type="tel" id="borrowerPhone" placeholder="98765 43210" inputmode="numeric" maxlength="10" style="flex:1" />
+        </div>
+        <div style="font-size:0.72rem;color:var(--muted);margin-top:5px">WhatsApp reminder ke liye number daalna zaroori hai</div>
+      </div>
+      <div class="field">
+        <label>Amount (₹)</label>
+        <input type="number" id="loanAmount" placeholder="50000" inputmode="numeric" />
+      </div>
+      <div class="field">
+        <label>Interest % / Month</label>
+        <input type="number" id="interestRate" placeholder="2" inputmode="decimal" step="0.1" min="0" />
+      </div>
+      <div class="field">
+        <label>Kitne Months</label>
+        <input type="number" id="loanMonths" placeholder="6" inputmode="numeric" min="1" max="120" />
+      </div>
+      <div class="field">
+        <label>Start Date</label>
+        <input type="date" id="startDate" />
+      </div>
+      <div class="field field-full">
+        <label>📝 Note (Optional)</label>
+        <textarea id="loanNote" placeholder="Koi zaruri baat... jaise kaam ke liye liya, gaadi ke liye, etc."></textarea>
+      </div>
+    </div>
+    <button class="btn-add" onclick="addLoan()">💸 Loan Add Karo</button>
+  </div>
+
+  <div class="stats-bar">
+    <div class="stat-card"><div class="stat-label" id="labelTotal">💼 Total Diya</div><div class="stat-value gold" id="statTotal">₹0</div></div>
+    <div class="stat-card"><div class="stat-label" id="labelReceived">✅ Wapas Aaya</div><div class="stat-value green" id="statReceived">₹0</div></div>
+    <div class="stat-card"><div class="stat-label" id="labelPending">⏳ Baaki Hai</div><div class="stat-value red" id="statPending">₹0</div></div>
+  </div>
+
+  <!-- Search summary banner - only shows when searching -->
+  <div id="searchSummary" style="display:none; background:rgba(240,165,0,0.08); border:1px solid rgba(240,165,0,0.25); border-radius:12px; padding:10px 16px; margin-bottom:16px; font-size:0.85rem; color:var(--accent); font-weight:600; text-align:center;"></div>
+
+  <div class="export-bar">
+    <button class="btn-export" onclick="exportCSV()">📊 Excel Export</button>
+    <button class="btn-export" onclick="exportAllPDF()">🖨️ Sabka PDF</button>
+  </div>
+
+  <div class="section-header">
+    <div class="section-title">📋 Sab Loans</div>
+    <div class="loans-count" id="loansCount"></div>
+  </div>
+  <div class="loans-list" id="loansList">
+    <div class="empty-state"><div class="icon">📭</div><p>Koi loan nahi hai. Upar se add karo!</p></div>
+  </div>
+</div>
+
+<div class="confirm-overlay" id="confirmOverlay">
+  <div class="confirm-box">
+    <h3>🗑️ Delete Karna Hai?</h3>
+    <p>Isko Bin mein bhejo (baad mein restore kar sako) ya hamesha ke liye delete karo?</p>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <button class="btn-move-bin" onclick="moveTobin()">🗑️ Bin Mein Bhejo</button>
+      <button class="btn-confirm-del" onclick="confirmDelete()">❌ Permanent Delete</button>
+      <button class="btn-cancel" onclick="closeConfirm()">↩ Wapas</button>
+    </div>
+  </div>
+</div>
+
+<!-- BIN OVERLAY -->
+<div class="bin-overlay" id="binOverlay">
+  <div class="bin-box">
+    <div class="bin-header">
+      <div style="font-size:1.2rem;font-weight:800">🗑️ Recycle Bin</div>
+      <button class="btn-close-bin" onclick="closeBin()">✕</button>
+    </div>
+    <div id="binCount" style="font-size:0.8rem;color:var(--muted);margin-bottom:14px"></div>
+    <div id="binList"></div>
+  </div>
+</div>
+
+<!-- BIN DELETE CONFIRM -->
+<div class="confirm-overlay" id="binConfirmOverlay" style="z-index:1002">
+  <div class="confirm-box">
+    <div style="font-size:2rem;margin-bottom:8px">⚠️</div>
+    <h3 id="binConfirmTitle">Permanently Delete?</h3>
+    <p id="binConfirmMsg">Yeh record hamesha ke liye chala jaayega. Wapas nahi aayega!</p>
+    <div style="display:flex;flex-direction:column;gap:10px;margin-top:4px">
+      <button class="btn-confirm-del" id="binConfirmBtn">❌ Haan, Permanently Delete Karo</button>
+      <button class="btn-cancel" onclick="closeBinConfirm()">↩ Nahi, Wapas</button>
+    </div>
+  </div>
+</div>
+
+<div class="settings-overlay" id="settingsOverlay">
+  <div class="settings-box">
+    <h3>🔑 Password Change Karo</h3>
+    <input type="password" id="currentPw" placeholder="Purana Password" inputmode="numeric" maxlength="10" />
+    <input type="password" id="newPw" placeholder="Naya Password (4+ digits)" inputmode="numeric" maxlength="10" />
+    <input type="password" id="confirmPw" placeholder="Naya Password Dobara Daalo" inputmode="numeric" maxlength="10" />
+    <button class="btn-save-pw" onclick="changePassword()">✅ Save Password</button>
+    <button class="btn-close-set" onclick="document.getElementById('settingsOverlay').classList.remove('show')">↩ Wapas</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  var STORAGE_KEY = 'udharKhata_v3';
+  var BIN_KEY = 'udharKhata_bin';
+  var PW_KEY = 'udharKhata_pw';
+  var THEME_KEY = 'udharKhata_theme';
+  var PROFILE_KEY = 'udharKhata_profile';
+  var loans = [];
+  var bin = [];
+  var pendingDeleteId = null;
+  var today = new Date().toISOString().split('T')[0];
+
+  // ===== PROFILE (owner name + city) =====
+  function getProfile() {
+    try { return JSON.parse(localStorage.getItem(PROFILE_KEY)) || null; } catch(e) { return null; }
+  }
+  function saveProfile(p) { localStorage.setItem(PROFILE_KEY, JSON.stringify(p)); }
+
+  function updateOwnerDisplay() {
+    var p = getProfile();
+    var el = document.getElementById('ownerInfoDisplay');
+    var lockLabel = document.getElementById('lockOwnerLabel');
+    if (p && p.name) {
+      el.textContent = '👤 ' + p.name + (p.city ? '  •  📍 ' + p.city : '');
+      if (lockLabel) lockLabel.textContent = '👤 ' + p.name + ' — password daalo';
+    }
+  }
+
+  // ===== WELCOME FLOW — slide animation =====
+  function showStep(n) {
+    // n=1 → 0%, n=2 → -33.33%, n=3 → -66.66%
+    var offset = (n - 1) * -33.3333;
+    document.getElementById('wSlider').style.transform = 'translateX(' + offset + '%)';
+  }
+  function goToSetup()   { showStep(2); }
+  function goToRestore() { showStep(3); }
+  function backToStep1() { showStep(1); }
+
+  function selectCity(city) {
+    document.getElementById('setupCity').value = city;
+    document.querySelectorAll('.city-chip').forEach(function(c){
+      c.classList.toggle('selected', c.textContent.trim() === city);
+    });
+  }
+  function clearCityChips() {
+    document.querySelectorAll('.city-chip').forEach(function(c){ c.classList.remove('selected'); });
+  }
+
+  function completeSetup() {
+    var name = document.getElementById('setupOwnerName').value.trim();
+    var city = document.getElementById('setupCity').value.trim();
+    var pw   = document.getElementById('setupPassword').value.trim();
+    if (!name) { showToast('❌ Apna naam daalo!'); return; }
+    if (!city) { showToast('❌ Shehar/location daalo!'); return; }
+    saveProfile({ name: name, city: city, setupDate: today });
+    if (pw && pw.length >= 4) localStorage.setItem(PW_KEY, pw);
+    document.getElementById('welcomeScreen').classList.add('hidden');
+    updateOwnerDisplay();
+    showToast('🎉 Welcome, ' + name + '! Shuru karo!');
+  }
+
+  function showRestoreScreen() {
+    document.getElementById('welcomeScreen').classList.remove('hidden');
+    document.getElementById('lockScreen').classList.add('hidden');
+    showStep(3);
+  }
+  function startFresh() { showStep(2); }
+
+  function restoreFromFile(event) {
+    var file = event.target.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      try {
+        var data = JSON.parse(e.target.result);
+        if (!data.loans && !data.profile) { showToast('❌ Galat file! Sahi backup chunein.'); return; }
+        if (data.loans)    { localStorage.setItem(STORAGE_KEY, JSON.stringify(data.loans)); loans = data.loans; }
+        if (data.bin)      { localStorage.setItem(BIN_KEY, JSON.stringify(data.bin)); bin = data.bin; }
+        if (data.profile)  { saveProfile(data.profile); }
+        if (data.password) { localStorage.setItem(PW_KEY, data.password); }
+        document.getElementById('welcomeScreen').classList.add('hidden');
+        document.getElementById('lockScreen').classList.remove('hidden');
+        updateOwnerDisplay();
+        renderAll();
+        updateBinBadge();
+        showToast('✅ ' + loans.length + ' loans restore ho gaye! Login karein.');
+      } catch(err) { showToast('❌ File mein koi problem. Sahi backup chunein.'); }
+    };
+    reader.readAsText(file);
+    event.target.value = '';
+  }
+
+  // ===== BACKUP DOWNLOAD =====
+  function downloadBackup() {
+    var profile = getProfile();
+    var backupData = {
+      version: 'v3',
+      backupDate: new Date().toLocaleString('en-IN'),
+      profile: profile,
+      password: localStorage.getItem(PW_KEY) || '1234',
+      loans: loans,
+      bin: bin
+    };
+    var json = JSON.stringify(backupData, null, 2);
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([json], { type: 'application/json' }));
+    var ownerName = (profile && profile.name) ? profile.name.replace(/\s+/g,'_') : 'UdharKhata';
+    a.download = ownerName + '_Backup_' + today + '.json';
+    a.click();
+    URL.revokeObjectURL(a.href);
+    showToast('💾 Backup download ho gaya! Safe jagah rakho.');
+  }
+
+  function getPassword() { return localStorage.getItem(PW_KEY) || '1234'; }
+
+  function checkPassword() {
+    var input = document.getElementById('lockInput').value;
+    if (input === getPassword()) {
+      document.getElementById('lockScreen').classList.add('hidden');
+      document.getElementById('lockInput').value = '';
+    } else {
+      var el = document.getElementById('lockInput');
+      el.classList.add('wrong');
+      setTimeout(function(){ el.classList.remove('wrong'); el.value=''; }, 500);
+      document.getElementById('lockHint').textContent = '❌ Galat password!';
+      setTimeout(function(){ document.getElementById('lockHint').textContent = 'Dobara try karo'; }, 2000);
+    }
+  }
+
+  function lockApp() {
+    document.getElementById('lockScreen').classList.remove('hidden');
+    document.getElementById('lockInput').value = '';
+  }
+
+  function changePassword() {
+    var cur = document.getElementById('currentPw').value;
+    var nw = document.getElementById('newPw').value;
+    var cf = document.getElementById('confirmPw').value;
+    if (cur !== getPassword()) { showToast('❌ Purana password galat!'); return; }
+    if (!nw || nw.length < 4) { showToast('❌ Kam se kam 4 digit chahiye!'); return; }
+    if (nw !== cf) { showToast('❌ Naya password match nahi hua!'); return; }
+    localStorage.setItem(PW_KEY, nw);
+    ['currentPw','newPw','confirmPw'].forEach(function(id){ document.getElementById(id).value=''; });
+    document.getElementById('settingsOverlay').classList.remove('show');
+    showToast('✅ Password change ho gaya!');
+  }
+
+  function toggleTheme() {
+    var cur = document.documentElement.getAttribute('data-theme');
+    var next = cur === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem(THEME_KEY, next);
+    document.getElementById('themeIcon').textContent = next === 'dark' ? '☀️' : '🌙';
+    document.getElementById('themeText').textContent = next === 'dark' ? 'Light Mode' : 'Dark Mode';
+  }
+
+  function loadTheme() {
+    var saved = localStorage.getItem(THEME_KEY) || 'dark';
+    document.documentElement.setAttribute('data-theme', saved);
+    document.getElementById('themeIcon').textContent = saved === 'dark' ? '☀️' : '🌙';
+    document.getElementById('themeText').textContent = saved === 'dark' ? 'Light Mode' : 'Dark Mode';
+  }
+
+  function loadData() {
+    try {
+      var raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) { var old = localStorage.getItem('udharKhata_v2'); if (old) raw = old; }
+      loans = raw ? JSON.parse(raw) : [];
+      loans.forEach(function(l) {
+        if (!l.note) l.note = '';
+        if (!l.phone) l.phone = '';
+        if (l.showNoteEdit === undefined) l.showNoteEdit = false;
+      });
+    } catch(e) { loans = []; }
+    try {
+      var binRaw = localStorage.getItem(BIN_KEY);
+      bin = binRaw ? JSON.parse(binRaw) : [];
+    } catch(e) { bin = []; }
+  }
+
+  function saveData() {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(loans)); } catch(e) {}
+    try { localStorage.setItem(BIN_KEY, JSON.stringify(bin)); } catch(e) {}
+    updateBinBadge();
+  }
+
+  function fmt(n) { return '₹' + Number(n).toLocaleString('en-IN', { maximumFractionDigits: 0 }); }
+
+  function showToast(msg) {
+    var t = document.getElementById('toast');
+    t.textContent = msg; t.classList.add('show');
+    setTimeout(function(){ t.classList.remove('show'); }, 2500);
+  }
+
+  function esc(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function addLoan() {
+    var name = document.getElementById('borrowerName').value.trim();
+    var rawPhone = document.getElementById('borrowerPhone').value.trim().replace(/\D/g,'');
+    var phone = rawPhone ? (rawPhone.startsWith('91') && rawPhone.length === 12 ? rawPhone : '91' + rawPhone) : '';
+    var amount = parseFloat(document.getElementById('loanAmount').value);
+    var rate = parseFloat(document.getElementById('interestRate').value);
+    var months = parseInt(document.getElementById('loanMonths').value);
+    var startDate = document.getElementById('startDate').value;
+    var note = document.getElementById('loanNote').value.trim();
+
+    if (!name) { showToast('❌ Naam daalo bhai!'); return; }
+    if (!amount || amount <= 0) { showToast('❌ Amount sahi daalo!'); return; }
+    if (isNaN(rate) || rate < 0) { showToast('❌ Interest rate daalo!'); return; }
+    if (!months || months < 1) { showToast('❌ Months daalo!'); return; }
+    if (!startDate) { showToast('❌ Date select karo!'); return; }
+
+    var totalInterest = amount * (rate / 100) * months;
+    var totalAmount = amount + totalInterest;
+    var emi = totalAmount / months;
+    var emis = [];
+    var start = new Date(startDate);
+    for (var i = 0; i < months; i++) {
+      var dd = new Date(start.getFullYear(), start.getMonth() + i + 1, start.getDate());
+      emis.push({ month: i+1, dueDate: dd.toISOString().split('T')[0], amount: Math.round(emi), paid: false, paidDate: null });
+    }
+    loans.push({
+      id: Date.now(), name: name, phone: phone,
+      principal: amount, rate: rate, months: months,
+      totalInterest: Math.round(totalInterest), totalAmount: Math.round(totalAmount),
+      emi: Math.round(emi), startDate: startDate, emis: emis,
+      showSchedule: false, note: note, showNoteEdit: false,
+      addedAt: new Date().toLocaleString('en-IN', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit', hour12: true })
+    });
+    saveData(); renderAll();
+    ['borrowerName','borrowerPhone','loanAmount','interestRate','loanMonths','loanNote'].forEach(function(id){ document.getElementById(id).value=''; });
+    showToast('✅ Loan add ho gaya!');
+    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+  }
+
+  function markPaid(loanId, emiIdx) {
+    var loan = loans.find(function(l){ return l.id===loanId; });
+    if (!loan) return;
+    loan.emis[emiIdx].paid = true;
+    loan.emis[emiIdx].paidDate = today;
+    saveData(); renderAll(); showToast('✅ EMI PAID ho gayi!');
+  }
+
+  function markUnpaid(loanId, emiIdx) {
+    var loan = loans.find(function(l){ return l.id===loanId; });
+    if (!loan) return;
+    loan.emis[emiIdx].paid = false;
+    loan.emis[emiIdx].paidDate = null;
+    saveData(); renderAll(); showToast('🔄 EMI UNPAID mark ho gayi!');
+  }
+
+  function askDelete(id) { pendingDeleteId = id; document.getElementById('confirmOverlay').classList.add('show'); }
+  function closeConfirm() { pendingDeleteId = null; document.getElementById('confirmOverlay').classList.remove('show'); }
+
+  // Move to bin (soft delete)
+  function moveTobin() {
+    if (!pendingDeleteId) return;
+    var loan = loans.find(function(l){ return l.id===pendingDeleteId; });
+    if (loan) {
+      loan.deletedAt = new Date().toLocaleString('en-IN', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit', hour12:true });
+      bin.push(loan);
+    }
+    loans = loans.filter(function(l){ return l.id!==pendingDeleteId; });
+    pendingDeleteId = null; saveData(); renderAll(); closeConfirm();
+    showToast('🗑️ Bin mein chala gaya! Restore kar sakte ho.');
+  }
+
+  // Permanent delete (skip bin)
+  function confirmDelete() {
+    if (!pendingDeleteId) return;
+    loans = loans.filter(function(l){ return l.id!==pendingDeleteId; });
+    pendingDeleteId = null; saveData(); renderAll(); closeConfirm();
+    showToast('❌ Permanently delete ho gaya!');
+  }
+
+  // Bin functions
+  function updateBinBadge() {
+    var badge = document.getElementById('binBadge');
+    if (badge) badge.textContent = bin.length > 0 ? '(' + bin.length + ')' : '';
+  }
+
+  function openBin() {
+    renderBin();
+    document.getElementById('binOverlay').classList.add('show');
+  }
+
+  function closeBin() {
+    document.getElementById('binOverlay').classList.remove('show');
+  }
+
+  function restoreFromBin(id) {
+    var item = bin.find(function(l){ return l.id===id; });
+    if (!item) return;
+    delete item.deletedAt;
+    item.showSchedule = false;
+    item.showNoteEdit = false;
+    loans.push(item);
+    bin = bin.filter(function(l){ return l.id!==id; });
+    saveData(); renderAll(); renderBin();
+    showToast('✅ Restore ho gaya!');
+  }
+
+  function permDeleteFromBin(id) {
+    openBinConfirm(
+      '❌ Permanently Delete Karo?',
+      'Yeh entry hamesha ke liye chali jaayegi. Wapas nahi aayegi!',
+      function() {
+        bin = bin.filter(function(l){ return l.id!==id; });
+        saveData(); renderBin();
+        showToast('❌ Permanently delete ho gaya!');
+      }
+    );
+  }
+
+  function emptyBin() {
+    if (!bin.length) { showToast('🗑️ Bin pehle se khali hai!'); return; }
+    openBinConfirm(
+      '🗑️ Poori Bin Saaf Karo?',
+      'Bin ki saari ' + bin.length + ' entries hamesha ke liye delete ho jaayengi. Koi bhi wapas nahi aayega!',
+      function() {
+        bin = [];
+        saveData(); renderBin();
+        showToast('🗑️ Bin poori saaf ho gayi!');
+      }
+    );
+  }
+
+  var binConfirmCallback = null;
+  function openBinConfirm(title, msg, callback) {
+    binConfirmCallback = callback;
+    document.getElementById('binConfirmTitle').textContent = title;
+    document.getElementById('binConfirmMsg').textContent = msg;
+    document.getElementById('binConfirmOverlay').classList.add('show');
+  }
+  function closeBinConfirm() {
+    binConfirmCallback = null;
+    document.getElementById('binConfirmOverlay').classList.remove('show');
+  }
+  document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('binConfirmBtn').onclick = function() {
+      if (binConfirmCallback) binConfirmCallback();
+      closeBinConfirm();
+    };
+  });
+
+  function renderBin() {
+    var list = document.getElementById('binList');
+    var countEl = document.getElementById('binCount');
+    updateBinBadge();
+
+    if (!bin.length) {
+      countEl.textContent = 'Bin khali hai';
+      list.innerHTML = '<div class="empty-state" style="padding:30px 0"><div class="icon">🗑️</div><p>Koi deleted item nahi hai</p></div>';
+      return;
+    }
+
+    countEl.textContent = bin.length + ' deleted item' + (bin.length !== 1 ? 's' : '') + ' — Restore ya permanently delete karo';
+
+    list.innerHTML = bin.slice().reverse().map(function(loan) {
+      var pc = loan.emis.filter(function(e){ return e.paid; }).length;
+      var pa = loan.emis.filter(function(e){ return e.paid; }).reduce(function(s,e){ return s+e.amount; }, 0);
+      var done = pc === loan.months;
+
+      var emiRows = loan.emis.map(function(e) {
+        var od = !e.paid && e.dueDate < today;
+        var statusTxt = e.paid ? '✅ PAID' : (od ? '❌ OVERDUE' : '⏳ UNPAID');
+        var statusColor = e.paid ? 'var(--green)' : (od ? 'var(--red)' : 'var(--accent)');
+        return '<div style="display:grid;grid-template-columns:28px 1fr 1fr 90px;gap:6px;padding:7px 8px;border-radius:6px;font-size:0.78rem;margin-bottom:3px;background:'+(e.paid?'rgba(63,185,80,0.07)':(od?'rgba(248,81,73,0.07)':'rgba(240,165,0,0.04)'))+';">' +
+          '<div style="color:var(--muted);font-weight:700">'+e.month+'</div>' +
+          '<div style="font-weight:600">'+fmt(e.amount)+'</div>' +
+          '<div style="color:var(--muted)">'+e.dueDate+'</div>' +
+          '<div style="color:'+statusColor+';font-weight:700">'+statusTxt+'</div>' +
+        '</div>';
+      }).join('');
+
+      return '<div class="bin-card">' +
+        '<div class="bin-card-header">' +
+          '<div>' +
+            '<div class="bin-name">👤 '+esc(loan.name)+'</div>' +
+            '<div class="bin-meta">Loan since: '+loan.startDate+(loan.phone?' · 📱 +'+loan.phone:'')+'</div>' +
+            '<div class="bin-meta" style="color:var(--green)">🕐 Added: '+(loan.addedAt||'N/A')+'</div>' +
+            '<div class="bin-meta" style="color:var(--red)">🗑️ Deleted: '+(loan.deletedAt||'N/A')+'</div>' +
+            (loan.note ? '<div class="bin-meta" style="margin-top:2px">📝 '+esc(loan.note)+'</div>' : '') +
+          '</div>' +
+          '<span style="font-size:0.72rem;padding:4px 10px;border-radius:20px;font-weight:700;'+(done?'background:rgba(63,185,80,0.15);color:var(--green);border:1px solid rgba(63,185,80,0.3)':'background:rgba(240,165,0,0.15);color:var(--accent);border:1px solid rgba(240,165,0,0.3)')+'">'+( done?'✅ Cleared':'⏳ Active')+'</span>' +
+        '</div>' +
+        '<div class="bin-amounts">' +
+          '<div class="bin-amt-item"><div class="bin-amt-label">Principal</div><div class="bin-amt-val" style="color:var(--accent)">'+fmt(loan.principal)+'</div></div>' +
+          '<div class="bin-amt-item"><div class="bin-amt-label">Paid</div><div class="bin-amt-val" style="color:var(--green)">'+fmt(pa)+'</div></div>' +
+          '<div class="bin-amt-item"><div class="bin-amt-label">Baaki</div><div class="bin-amt-val" style="color:var(--red)">'+fmt(loan.totalAmount-pa)+'</div></div>' +
+        '</div>' +
+        '<div class="bin-emi-mini">📊 EMI: '+pc+'/'+loan.months+' paid &nbsp;|&nbsp; Monthly: '+fmt(loan.emi)+'</div>' +
+        '<div style="font-size:0.78rem;color:var(--muted);margin-bottom:8px;font-weight:600">📋 EMI Schedule:</div>' +
+        '<div style="background:var(--card);border-radius:8px;padding:6px;margin-bottom:10px">' +
+          '<div style="display:grid;grid-template-columns:28px 1fr 1fr 90px;gap:6px;padding:5px 8px;font-size:0.68rem;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:0.4px">' +
+            '<div>#</div><div>Amount</div><div>Due Date</div><div>Status</div>' +
+          '</div>' +
+          emiRows +
+        '</div>' +
+        '<div class="bin-actions">' +
+          '<button class="btn-restore" onclick="restoreFromBin('+loan.id+')">♻️ Restore Karo</button>' +
+          '<button class="btn-perm-del" onclick="permDeleteFromBin('+loan.id+')">❌ Hamesha Delete</button>' +
+        '</div>' +
+      '</div>';
+    }).join('') +
+    '<button class="btn-empty-bin" onclick="emptyBin()">🗑️ Poori Bin Saaf Karo</button>';
+  }
+
+  function toggleSchedule(id) {
+    var loan = loans.find(function(l){ return l.id===id; });
+    if (loan) loan.showSchedule = !loan.showSchedule;
+    saveData(); renderAll();
+  }
+
+  function toggleNoteEdit(loanId) {
+    var loan = loans.find(function(l){ return l.id===loanId; });
+    if (!loan) return;
+    loan.showNoteEdit = !loan.showNoteEdit;
+    saveData(); renderAll();
+    if (loan.showNoteEdit) setTimeout(function(){ var el=document.getElementById('noteEdit_'+loanId); if(el) el.focus(); }, 50);
+  }
+
+  function saveNote(loanId) {
+    var loan = loans.find(function(l){ return l.id===loanId; });
+    if (!loan) return;
+    loan.note = document.getElementById('noteEdit_'+loanId).value.trim();
+    loan.showNoteEdit = false;
+    saveData(); renderAll(); showToast('📝 Note save ho gaya!');
+  }
+
+  function sendWhatsApp(loanId) {
+    var loan = loans.find(function(l){ return l.id===loanId; });
+    if (!loan) return;
+    var paidAmt = loan.emis.filter(function(e){ return e.paid; }).reduce(function(s,e){ return s+e.amount; }, 0);
+    var paidCnt = loan.emis.filter(function(e){ return e.paid; }).length;
+    var nextEmi = loan.emis.find(function(e){ return !e.paid; });
+    var msg = 'Namaskar *' + loan.name + '* ji! 🙏\n\n';
+    msg += '📋 *Aapka Loan Statement:*\n';
+    msg += '━━━━━━━━━━━━━━━━\n';
+    msg += '💰 Principal: ' + fmt(loan.principal) + '\n';
+    msg += '📈 Kul Dena Hai: ' + fmt(loan.totalAmount) + '\n';
+    msg += '✅ Chuka Diya: ' + fmt(paidAmt) + '\n';
+    msg += '🔴 Abhi Baaki: ' + fmt(loan.totalAmount - paidAmt) + '\n';
+    msg += '📊 EMI: ' + paidCnt + '/' + loan.months + ' paid\n';
+    if (nextEmi) msg += '\n⏰ *Agla EMI: ' + fmt(nextEmi.amount) + '* — Due: ' + nextEmi.dueDate + '\n';
+    msg += '\nKripya jaldi payment karein. Shukriya! 🙏';
+    // Number hai to directly us pe, warna WhatsApp khulega - contact khud choose karo
+    var url = loan.phone
+      ? 'https://wa.me/' + loan.phone + '?text=' + encodeURIComponent(msg)
+      : 'https://wa.me/?text=' + encodeURIComponent(msg);
+    window.open(url, '_blank');
+    if (!loan.phone) showToast('📲 WhatsApp khula — contact choose karo!');
+  }
+
+  function exportLoanCSV(loanId) {
+    var loan = loans.find(function(l){ return l.id===loanId; });
+    if (!loan) return;
+    var rows = [
+      ['UDHAR KHATA - Loan Statement'],
+      [''],
+      ['Naam', loan.name],
+      ['Phone', loan.phone ? '+'+loan.phone : '-'],
+      ['Principal', loan.principal],
+      ['Interest', loan.totalInterest],
+      ['Total Amount', loan.totalAmount],
+      ['Monthly EMI', loan.emi],
+      ['Total Months', loan.months],
+      ['Start Date', loan.startDate],
+      ['Note', loan.note || '-'],
+      [''],
+      ['EMI Schedule'],
+      ['#', 'Due Date', 'Amount', 'Status', 'Paid On']
+    ];
+    loan.emis.forEach(function(e) {
+      rows.push([e.month, e.dueDate, e.amount, e.paid ? 'PAID' : 'UNPAID', e.paidDate || '-']);
+    });
+    var pc = loan.emis.filter(function(e){ return e.paid; }).length;
+    var pa = loan.emis.filter(function(e){ return e.paid; }).reduce(function(s,e){ return s+e.amount; }, 0);
+    rows.push(['']);
+    rows.push(['Paid EMIs', pc + '/' + loan.months]);
+    rows.push(['Paid Amount', pa]);
+    rows.push(['Remaining', loan.totalAmount - pa]);
+
+    var csv = rows.map(function(r){ return r.map(function(c){ return '"'+String(c).replace(/"/g,'""')+'"'; }).join(','); }).join('\n');
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob(['\uFEFF'+csv], {type:'text/csv;charset=utf-8;'}));
+    a.download = 'Loan_' + loan.name + '_' + today + '.csv';
+    a.click();
+    showToast('📊 '+loan.name+' ka Excel download ho gaya!');
+  }
+
+  function exportLoanPDF(loanId) {
+    var loan = loans.find(function(l){ return l.id===loanId; });
+    if (!loan) return;
+    var pc = loan.emis.filter(function(e){ return e.paid; }).length;
+    var pa = loan.emis.filter(function(e){ return e.paid; }).reduce(function(s,e){ return s+e.amount; }, 0);
+    var progress = Math.round((pc/loan.months)*100);
+    var done = pc === loan.months;
+
+    var emiRows = loan.emis.map(function(e) {
+      var overdue = !e.paid && e.dueDate < today;
+      var statusStyle = e.paid ? 'color:#2da44e;font-weight:700' : (overdue ? 'color:#cf222e;font-weight:700' : 'color:#d4920a;font-weight:700');
+      var statusText = e.paid ? '✅ PAID' : (overdue ? '❌ OVERDUE' : '⏳ UNPAID');
+      var rowBg = e.paid ? '#f0fff4' : (overdue ? '#fff5f5' : '#fffbf0');
+      return '<tr style="background:'+rowBg+';border-bottom:1px solid #eee">' +
+        '<td style="padding:8px 12px;text-align:center;font-weight:700;color:#555">' + e.month + '</td>' +
+        '<td style="padding:8px 12px;font-weight:600;color:#333">' + e.dueDate + '</td>' +
+        '<td style="padding:8px 12px;font-weight:700;color:#1a1a2e">₹' + Number(e.amount).toLocaleString('en-IN') + '</td>' +
+        '<td style="padding:8px 12px;'+statusStyle+'">' + statusText + '</td>' +
+        '<td style="padding:8px 12px;color:#666;font-size:0.85em">' + (e.paidDate || '-') + '</td>' +
+      '</tr>';
+    }).join('');
+
+    var progressColor = done ? '#2da44e' : '#d4920a';
+    var html = '<!DOCTYPE html><html><head><meta charset="UTF-8">' +
+      '<title>Loan Statement - ' + loan.name + '</title>' +
+      '<style>' +
+        'body{font-family:Arial,sans-serif;margin:0;padding:30px;background:#fff;color:#1a1a2e}' +
+        'h1{color:#d4920a;font-size:1.6rem;margin-bottom:4px}' +
+        '.subtitle{color:#666;font-size:0.9rem;margin-bottom:24px}' +
+        '.summary{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px}' +
+        '.sum-box{background:#f8f9fa;border:1px solid #e0e0e0;border-radius:10px;padding:14px;text-align:center}' +
+        '.sum-label{font-size:0.72rem;color:#666;text-transform:uppercase;letter-spacing:0.5px;font-weight:600}' +
+        '.sum-val{font-size:1.2rem;font-weight:800;margin-top:4px}' +
+        'table{width:100%;border-collapse:collapse;border-radius:10px;overflow:hidden;border:1px solid #e0e0e0}' +
+        'thead tr{background:#1a1a2e;color:#fff}' +
+        'thead th{padding:12px;text-align:left;font-size:0.82rem;letter-spacing:0.5px}' +
+        '.progress-bar{background:#e0e0e0;border-radius:4px;height:10px;margin:8px 0}' +
+        '.progress-fill{background:'+progressColor+';height:10px;border-radius:4px;width:'+progress+'%}' +
+        '.info-row{display:flex;gap:30px;margin-bottom:20px;flex-wrap:wrap}' +
+        '.info-item{font-size:0.9rem}.info-item b{color:#333}' +
+        '@media print{body{padding:15px}}' +
+      '</style></head><body>' +
+      '<h1>💰 Udhar Khata</h1>' +
+      '<div class="subtitle">Loan Statement — Printed on ' + today + '</div>' +
+      '<div class="info-row">' +
+        '<div class="info-item">👤 <b>Naam:</b> ' + esc(loan.name) + '</div>' +
+        (loan.phone ? '<div class="info-item">📱 <b>Phone:</b> +' + loan.phone + '</div>' : '') +
+        '<div class="info-item">📅 <b>Since:</b> ' + loan.startDate + '</div>' +
+        (loan.note ? '<div class="info-item">📝 <b>Note:</b> ' + esc(loan.note) + '</div>' : '') +
+      '</div>' +
+      '<div class="summary">' +
+        '<div class="sum-box"><div class="sum-label">💰 Principal</div><div class="sum-val" style="color:#d4920a">₹'+Number(loan.principal).toLocaleString('en-IN')+'</div></div>' +
+        '<div class="sum-box"><div class="sum-label">✅ Paid</div><div class="sum-val" style="color:#2da44e">₹'+Number(pa).toLocaleString('en-IN')+'</div></div>' +
+        '<div class="sum-box"><div class="sum-label">⏳ Baaki</div><div class="sum-val" style="color:#cf222e">₹'+Number(loan.totalAmount-pa).toLocaleString('en-IN')+'</div></div>' +
+        '<div class="sum-box"><div class="sum-label">📈 Total (w/ Interest)</div><div class="sum-val" style="color:#d4920a">₹'+Number(loan.totalAmount).toLocaleString('en-IN')+'</div></div>' +
+        '<div class="sum-box"><div class="sum-label">📅 Monthly EMI</div><div class="sum-val" style="color:#7c3aed">₹'+Number(loan.emi).toLocaleString('en-IN')+'</div></div>' +
+        '<div class="sum-box"><div class="sum-label">📊 Progress</div><div class="sum-val" style="color:'+progressColor+'">'+pc+'/'+loan.months+'</div></div>' +
+      '</div>' +
+      '<div style="margin-bottom:6px;font-size:0.82rem;color:#666">Payment Progress: '+progress+'%</div>' +
+      '<div class="progress-bar"><div class="progress-fill"></div></div>' +
+      '<br>' +
+      '<table>' +
+        '<thead><tr>' +
+          '<th>#</th><th>Due Date</th><th>EMI Amount</th><th>Status</th><th>Paid On</th>' +
+        '</tr></thead>' +
+        '<tbody>' + emiRows + '</tbody>' +
+      '</table>' +
+      '<div style="margin-top:30px;text-align:center;color:#aaa;font-size:0.78rem">Generated by Udhar Khata</div>' +
+      '</body></html>';
+
+    var win = window.open('', '_blank');
+    win.document.write(html);
+    win.document.close();
+    setTimeout(function(){ win.print(); }, 500);
+    showToast('🖨️ '+loan.name+' ka PDF print ho raha hai!');
+  }
+
+  function exportCSV() {
+    var rows = [['Naam','Phone','Principal','Interest','Total','EMI','Months','Start Date','Paid EMIs','Paid Amount','Baaki','Status','Note']];
+    loans.forEach(function(l) {
+      var pc = l.emis.filter(function(e){ return e.paid; }).length;
+      var pa = l.emis.filter(function(e){ return e.paid; }).reduce(function(s,e){ return s+e.amount; }, 0);
+      rows.push([l.name, l.phone, l.principal, l.totalInterest, l.totalAmount, l.emi, l.months, l.startDate, pc, pa, l.totalAmount-pa, pc===l.months?'Cleared':'Active', l.note||'']);
+    });
+    var csv = rows.map(function(r){ return r.map(function(c){ return '"'+String(c).replace(/"/g,'""')+'"'; }).join(','); }).join('\n');
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob(['\uFEFF'+csv], {type:'text/csv;charset=utf-8;'}));
+    a.download = 'UdharKhata_' + today + '.csv'; a.click();
+    showToast('📊 Excel file download ho gayi!');
+  }
+
+  function exportPDF() {
+    if (!loans.length) { showToast('❌ Koi loan nahi hai!'); return; }
+    var prev = loans.map(function(l){ return l.showSchedule; });
+    loans.forEach(function(l){ l.showSchedule = true; });
+    renderAll();
+    setTimeout(function(){ window.print(); loans.forEach(function(l,i){ l.showSchedule=prev[i]; }); renderAll(); }, 300);
+  }
+
+  function updateStats() {
+    var search = (document.getElementById('searchInput').value || '').toLowerCase().trim();
+    var filter = document.getElementById('filterSelect').value;
+    var filtered = getFiltered();
+    var isSearching = search.length > 0 || filter !== 'all';
+
+    // Calculate stats from filtered loans only when searching, else all loans
+    var sourceLoans = isSearching ? filtered : loans;
+    var tg = 0, tr = 0;
+    sourceLoans.forEach(function(l) {
+      tg += l.totalAmount;
+      l.emis.forEach(function(e) { if (e.paid) tr += e.amount; });
+    });
+
+    document.getElementById('statTotal').textContent = fmt(tg);
+    document.getElementById('statReceived').textContent = fmt(tr);
+    document.getElementById('statPending').textContent = fmt(tg - tr);
+
+    // Update labels & show banner when searching by name
+    var banner = document.getElementById('searchSummary');
+    if (search.length > 0) {
+      var uniqueNames = [...new Set(filtered.map(function(l){ return l.name; }))];
+      var label = uniqueNames.length === 1 ? '👤 ' + uniqueNames[0] : '🔍 "' + search + '"';
+      document.getElementById('labelTotal').textContent = '💼 ' + label + ' — Diya';
+      document.getElementById('labelReceived').textContent = '✅ ' + label + ' — Aaya';
+      document.getElementById('labelPending').textContent = '⏳ ' + label + ' — Baaki';
+      banner.style.display = 'block';
+      banner.textContent = '🔍 "' + search + '" ke liye ' + filtered.length + ' loan' + (filtered.length !== 1 ? 's' : '') + ' mila — Sirf inka hisaab dikh raha hai';
+    } else {
+      document.getElementById('labelTotal').textContent = '💼 Total Diya';
+      document.getElementById('labelReceived').textContent = '✅ Wapas Aaya';
+      document.getElementById('labelPending').textContent = '⏳ Baaki Hai';
+      banner.style.display = 'none';
+    }
+  }
+
+  function getFiltered() {
+    var search = (document.getElementById('searchInput').value||'').toLowerCase().trim();
+    var filter = document.getElementById('filterSelect').value;
+    return loans.filter(function(l) {
+      if (search && l.name.toLowerCase().indexOf(search)===-1) return false;
+      var pc = l.emis.filter(function(e){ return e.paid; }).length;
+      var done = pc === l.months;
+      var overdue = l.emis.some(function(e){ return !e.paid && e.dueDate < today; });
+      if (filter==='active') return !done;
+      if (filter==='paid') return done;
+      if (filter==='overdue') return overdue && !done;
+      return true;
+    });
+  }
+
+  function renderLoans() {
+    var list = document.getElementById('loansList');
+    var filtered = getFiltered();
+    document.getElementById('loansCount').textContent = filtered.length + ' loan' + (filtered.length!==1?'s':'');
+
+    if (!loans.length) {
+      list.innerHTML = '<div class="empty-state"><div class="icon">📭</div><p>Koi loan nahi hai. Upar se add karo!</p></div>';
+      return;
+    }
+    if (!filtered.length) {
+      list.innerHTML = '<div class="empty-state"><div class="icon">🔍</div><p>Koi result nahi mila.</p></div>';
+      return;
+    }
+
+    list.innerHTML = filtered.map(function(loan) {
+      var pc = loan.emis.filter(function(e){ return e.paid; }).length;
+      var pa = loan.emis.filter(function(e){ return e.paid; }).reduce(function(s,e){ return s+e.amount; }, 0);
+      var pend = loan.totalAmount - pa;
+      var prog = Math.round((pc/loan.months)*100);
+      var done = pc===loan.months;
+      var overdue = !done && loan.emis.some(function(e){ return !e.paid && e.dueDate < today; });
+
+      var cardCls = done ? 'fully-paid' : (overdue ? 'has-overdue' : '');
+      var badgeCls = done ? 'badge-done' : (overdue ? 'badge-overdue' : 'badge-active');
+      var badgeTxt = done ? '✅ Cleared' : (overdue ? '🔴 Overdue' : '⏳ Active');
+
+      var emiRows = loan.emis.map(function(e,i) {
+        var od = !e.paid && e.dueDate < today;
+        return '<div class="emi-row '+(e.paid?'paid-row':(od?'overdue-row':''))+'">' +
+          '<div style="color:var(--muted);font-weight:700">'+e.month+'</div>' +
+          '<div style="font-weight:600">'+fmt(e.amount)+'</div>' +
+          '<div style="font-size:0.76rem">'+e.dueDate+(od?'<span class="overdue-badge">OVERDUE</span>':'')+'</div>' +
+          '<div>'+(e.paid
+            ? '<button class="btn-unpay" onclick="markUnpaid('+loan.id+','+i+')">✅ PAID</button>'
+            : '<button class="btn-pay" onclick="markPaid('+loan.id+','+i+')">❌ UNPAID</button>'
+          )+'</div>' +
+        '</div>';
+      }).join('');
+
+      var noteHtml = '<div class="notes-section">' +
+        '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px">' +
+          '<div class="notes-display">'+(loan.note?'📝 '+esc(loan.note):'<span style="opacity:0.5">Koi note nahi</span>')+'</div>' +
+          '<button class="btn-note-toggle" onclick="toggleNoteEdit('+loan.id+')">'+(loan.showNoteEdit?'✕ Band':'✏️ Edit')+'</button>' +
+        '</div>' +
+        '<textarea class="notes-edit-area '+(loan.showNoteEdit?'open':'')+'" id="noteEdit_'+loan.id+'">'+esc(loan.note||'')+'</textarea>' +
+        (loan.showNoteEdit?'<button class="btn-note-save" onclick="saveNote('+loan.id+')">💾 Save</button>':'') +
+      '</div>';
+
+      return '<div class="loan-card '+cardCls+'">' +
+        '<div class="loan-header">' +
+          '<div>' +
+            '<div class="borrower-name">👤 '+esc(loan.name)+'</div>' +
+            '<div class="loan-since">Since '+loan.startDate+'</div>' +
+            '<div class="loan-since" style="margin-top:2px">🕐 Added: '+(loan.addedAt || 'N/A')+'</div>' +
+            (loan.phone ? '<div style="font-size:0.78rem;color:var(--green);margin-top:2px;font-weight:600">📱 +'+loan.phone+'</div>' : '<div style="font-size:0.72rem;color:var(--red);margin-top:2px">📵 No number</div>') +
+            (loan.note?'<div class="loan-note-preview">'+esc(loan.note)+'</div>':'') +
+          '</div>' +
+          '<div class="header-right">' +
+            '<span class="loan-badge '+badgeCls+'">'+badgeTxt+'</span>' +
+            '<button class="btn-delete" onclick="askDelete('+loan.id+')">🗑️</button>' +
+          '</div>' +
+        '</div>' +
+        '<div class="loan-details">' +
+          '<div class="detail-item"><div class="detail-label">Principal</div><div class="detail-value gold">'+fmt(loan.principal)+'</div></div>' +
+          '<div class="detail-item"><div class="detail-label">Interest</div><div class="detail-value orange">'+fmt(loan.totalInterest)+'</div></div>' +
+          '<div class="detail-item"><div class="detail-label">Total</div><div class="detail-value gold">'+fmt(loan.totalAmount)+'</div></div>' +
+          '<div class="detail-item"><div class="detail-label">Monthly EMI</div><div class="detail-value purple">'+fmt(loan.emi)+'</div></div>' +
+          '<div class="detail-item"><div class="detail-label">Wapas Aaya</div><div class="detail-value green">'+fmt(pa)+'</div></div>' +
+          '<div class="detail-item"><div class="detail-label">Baaki Hai</div><div class="detail-value red">'+fmt(pend)+'</div></div>' +
+        '</div>' +
+        noteHtml +
+        '<div class="progress-section">' +
+          '<div class="progress-meta"><span>'+pc+' / '+loan.months+' EMI Paid</span>' +
+          '<span style="color:'+(done?'var(--green)':(overdue?'var(--red)':'var(--accent)'))+'">'+prog+'%</span></div>' +
+          '<div class="progress-bar"><div class="progress-fill '+(done?'done':'')+'" style="width:'+prog+'%"></div></div>' +
+        '</div>' +
+        '<div class="emi-section">' +
+          '<button class="emi-toggle" onclick="toggleSchedule('+loan.id+')">'+(loan.showSchedule?'▲ Schedule Band Karo':'▼ EMI Schedule Dekho')+'</button>' +
+          '<div class="emi-table '+(loan.showSchedule?'open':'')+'">' +
+            '<div class="emi-row header"><div>#</div><div>Amount</div><div>Due Date</div><div>Action</div></div>' +
+            emiRows +
+          '</div>' +
+          '<button class="whatsapp-btn" onclick="sendWhatsApp('+loan.id+')">' +
+            '<svg width="16" height="16" viewBox="0 0 24 24" fill="#25d366"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>' +
+            ' WhatsApp Reminder Bhejo' +
+          '</button>' +
+          '<div class="loan-action-btns">' +
+            '<button class="btn-loan-export" onclick="exportLoanPDF('+loan.id+')">🖨️ PDF Statement</button>' +
+            '<button class="btn-loan-export" onclick="exportLoanCSV('+loan.id+')">📊 Excel Download</button>' +
+            '<button class="btn-loan-export" style="grid-column:1/-1;color:var(--accent);border-color:rgba(240,165,0,0.3)" onclick="copyEmiReminder('+loan.id+')">📋 EMI Reminder Copy Karo</button>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+  }
+
+  function renderAll() { updateStats(); renderLoans(); }
+  function copyEmiReminder(loanId) {
+    var loan = loans.find(function(l){ return l.id===loanId; });
+    if (!loan) return;
+    var nextEmi = loan.emis.find(function(e){ return !e.paid; });
+    var paidCnt = loan.emis.filter(function(e){ return e.paid; }).length;
+    var paidAmt = loan.emis.filter(function(e){ return e.paid; }).reduce(function(s,e){ return s+e.amount; }, 0);
+    var baaki = loan.totalAmount - paidAmt;
+
+    var msg = '';
+    if (!nextEmi) {
+      msg = 'Namaskar *' + loan.name + '* ji! 🙏\n\n';
+      msg += '✅ Aapka poora loan cleared ho gaya hai!\n';
+      msg += '💰 Kul Chukaya: ' + fmt(loan.totalAmount) + '\n';
+      msg += 'Bahut bahut dhanyavaad! 🙏';
+    } else {
+      var isOverdueEmi = nextEmi.dueDate < today;
+      msg = 'Namaskar *' + loan.name + '* ji! 🙏\n\n';
+      msg += (isOverdueEmi ? '🔴 *EMI OVERDUE Notice*\n\n' : '⏰ *EMI Reminder*\n\n');
+      msg += '━━━━━━━━━━━━━━━━\n';
+      msg += '📅 Due Date: *' + nextEmi.dueDate + '*\n';
+      msg += '💵 EMI Amount: *' + fmt(nextEmi.amount) + '*\n';
+      msg += '📊 EMI No.: ' + nextEmi.month + ' / ' + loan.months + '\n';
+      msg += '✅ Paid: ' + fmt(paidAmt) + '\n';
+      msg += '🔴 Baaki: *' + fmt(baaki) + '*\n';
+      msg += '━━━━━━━━━━━━━━━━\n';
+      msg += (isOverdueEmi
+        ? '\nAapki EMI overdue ho gayi hai. Kripya *turant* payment karein! 🙏'
+        : '\nKripya time pe payment karein. Shukriya! 🙏');
+    }
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(msg).then(function() {
+        showToast('📋 ' + loan.name + ' ka reminder copy ho gaya!');
+      }).catch(function() { fallbackCopy(msg, loan.name); });
+    } else { fallbackCopy(msg, loan.name); }
+  }
+
+  function fallbackCopy(text, name) {
+    var ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); showToast('📋 ' + name + ' ka reminder copy ho gaya!'); }
+    catch(e) { showToast('❌ Copy nahi ho saka!'); }
+    document.body.removeChild(ta);
+  }
+
+  // ===== SABKA EK PDF =====
+  function exportAllPDF() {
+    if (!loans.length) { showToast('❌ Koi loan nahi hai!'); return; }
+
+    var totalGiven = 0, totalReceived = 0;
+    loans.forEach(function(l) {
+      totalGiven += l.totalAmount;
+      l.emis.forEach(function(e){ if(e.paid) totalReceived += e.amount; });
+    });
+    var totalPending = totalGiven - totalReceived;
+
+    var loanSections = loans.map(function(loan, idx) {
+      var pc = loan.emis.filter(function(e){ return e.paid; }).length;
+      var pa = loan.emis.filter(function(e){ return e.paid; }).reduce(function(s,e){ return s+e.amount; }, 0);
+      var done = pc === loan.months;
+      var overdue = !done && loan.emis.some(function(e){ return !e.paid && e.dueDate < today; });
+      var progress = Math.round((pc/loan.months)*100);
+      var statusColor = done ? '#2da44e' : (overdue ? '#cf222e' : '#d4920a');
+      var statusText = done ? '✅ CLEARED' : (overdue ? '🔴 OVERDUE' : '⏳ ACTIVE');
+
+      var emiRows = loan.emis.map(function(e) {
+        var od = !e.paid && e.dueDate < today;
+        var bg = e.paid ? '#f0fff4' : (od ? '#fff5f5' : '#fffbf0');
+        var statusTxt = e.paid ? '✅ PAID' : (od ? '❌ OVERDUE' : '⏳ UNPAID');
+        var sc = e.paid ? '#2da44e' : (od ? '#cf222e' : '#d4920a');
+        return '<tr style="background:'+bg+';border-bottom:1px solid #f0f0f0">' +
+          '<td style="padding:6px 10px;text-align:center;font-weight:700;color:#666">'+e.month+'</td>' +
+          '<td style="padding:6px 10px;color:#333">'+e.dueDate+'</td>' +
+          '<td style="padding:6px 10px;font-weight:700;color:#1a1a2e">₹'+Number(e.amount).toLocaleString('en-IN')+'</td>' +
+          '<td style="padding:6px 10px;font-weight:700;color:'+sc+'">'+statusTxt+'</td>' +
+          '<td style="padding:6px 10px;color:#888;font-size:0.82em">'+(e.paidDate||'-')+'</td>' +
+        '</tr>';
+      }).join('');
+
+      return '<div style="page-break-inside:avoid;margin-bottom:32px;border:1px solid #e0e0e0;border-radius:12px;overflow:hidden">' +
+        '<div style="background:#1a1a2e;color:#fff;padding:14px 18px;display:flex;justify-content:space-between;align-items:center">' +
+          '<div>' +
+            '<div style="font-size:1.1rem;font-weight:800">'+String(idx+1)+'. 👤 '+loan.name+'</div>' +
+            '<div style="font-size:0.78rem;opacity:0.7;margin-top:2px">Since '+loan.startDate+(loan.phone?' · 📱 +'+loan.phone:'')+(loan.addedAt?' · Added: '+loan.addedAt:'')+'</div>' +
+            (loan.note ? '<div style="font-size:0.78rem;opacity:0.7;margin-top:1px">📝 '+loan.note+'</div>' : '') +
+          '</div>' +
+          '<span style="background:'+statusColor+';color:#fff;padding:4px 12px;border-radius:20px;font-size:0.75rem;font-weight:700">'+statusText+'</span>' +
+        '</div>' +
+        '<div style="display:grid;grid-template-columns:repeat(3,1fr);border-bottom:1px solid #e0e0e0">' +
+          '<div style="padding:12px;border-right:1px solid #e0e0e0;text-align:center"><div style="font-size:0.68rem;color:#888;text-transform:uppercase;font-weight:600">Principal</div><div style="font-size:1rem;font-weight:800;color:#d4920a;margin-top:3px">₹'+Number(loan.principal).toLocaleString('en-IN')+'</div></div>' +
+          '<div style="padding:12px;border-right:1px solid #e0e0e0;text-align:center"><div style="font-size:0.68rem;color:#888;text-transform:uppercase;font-weight:600">Total Amount</div><div style="font-size:1rem;font-weight:800;color:#d4920a;margin-top:3px">₹'+Number(loan.totalAmount).toLocaleString('en-IN')+'</div></div>' +
+          '<div style="padding:12px;text-align:center"><div style="font-size:0.68rem;color:#888;text-transform:uppercase;font-weight:600">Monthly EMI</div><div style="font-size:1rem;font-weight:800;color:#7c3aed;margin-top:3px">₹'+Number(loan.emi).toLocaleString('en-IN')+'</div></div>' +
+          '<div style="padding:12px;border-right:1px solid #e0e0e0;border-top:1px solid #e0e0e0;text-align:center"><div style="font-size:0.68rem;color:#888;text-transform:uppercase;font-weight:600">Paid</div><div style="font-size:1rem;font-weight:800;color:#2da44e;margin-top:3px">₹'+Number(pa).toLocaleString('en-IN')+'</div></div>' +
+          '<div style="padding:12px;border-right:1px solid #e0e0e0;border-top:1px solid #e0e0e0;text-align:center"><div style="font-size:0.68rem;color:#888;text-transform:uppercase;font-weight:600">Baaki</div><div style="font-size:1rem;font-weight:800;color:#cf222e;margin-top:3px">₹'+Number(loan.totalAmount-pa).toLocaleString('en-IN')+'</div></div>' +
+          '<div style="padding:12px;border-top:1px solid #e0e0e0;text-align:center"><div style="font-size:0.68rem;color:#888;text-transform:uppercase;font-weight:600">Progress</div><div style="font-size:1rem;font-weight:800;color:'+statusColor+';margin-top:3px">'+pc+'/'+loan.months+' ('+progress+'%)</div></div>' +
+        '</div>' +
+        '<div style="padding:12px 16px;border-bottom:1px solid #e0e0e0">' +
+          '<div style="background:#e0e0e0;border-radius:4px;height:8px;overflow:hidden">' +
+            '<div style="background:'+statusColor+';height:8px;width:'+progress+'%;border-radius:4px"></div>' +
+          '</div>' +
+        '</div>' +
+        '<table style="width:100%;border-collapse:collapse">' +
+          '<thead><tr style="background:#f5f5f5">' +
+            '<th style="padding:8px 10px;text-align:center;font-size:0.72rem;color:#555;font-weight:700">#</th>' +
+            '<th style="padding:8px 10px;text-align:left;font-size:0.72rem;color:#555;font-weight:700">Due Date</th>' +
+            '<th style="padding:8px 10px;text-align:left;font-size:0.72rem;color:#555;font-weight:700">Amount</th>' +
+            '<th style="padding:8px 10px;text-align:left;font-size:0.72rem;color:#555;font-weight:700">Status</th>' +
+            '<th style="padding:8px 10px;text-align:left;font-size:0.72rem;color:#555;font-weight:700">Paid On</th>' +
+          '</tr></thead>' +
+          '<tbody>'+emiRows+'</tbody>' +
+        '</table>' +
+      '</div>';
+    }).join('');
+
+    var html = '<!DOCTYPE html><html><head><meta charset="UTF-8">' +
+      '<title>Udhar Khata — Sabka Report — '+today+'</title>' +
+      '<style>body{font-family:Arial,sans-serif;margin:0;padding:24px;background:#fff;color:#1a1a2e}' +
+      '@media print{.no-print{display:none}body{padding:10px}}' +
+      '</style></head><body>' +
+      '<div style="text-align:center;margin-bottom:28px;padding-bottom:20px;border-bottom:3px solid #f0a500">' +
+        '<div style="font-size:2rem;font-weight:900;color:#d4920a">💰 Udhar Khata</div>' +
+        '<div style="color:#666;font-size:0.9rem;margin-top:4px">Sabka Loan Report — '+today+'</div>' +
+      '</div>' +
+      '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:28px">' +
+        '<div style="background:#fffbf0;border:2px solid #f0a500;border-radius:12px;padding:16px;text-align:center">' +
+          '<div style="font-size:0.72rem;color:#888;text-transform:uppercase;font-weight:700;letter-spacing:0.5px">💼 Total Diya</div>' +
+          '<div style="font-size:1.5rem;font-weight:900;color:#d4920a;margin-top:4px">₹'+Number(totalGiven).toLocaleString('en-IN')+'</div>' +
+        '</div>' +
+        '<div style="background:#f0fff4;border:2px solid #2da44e;border-radius:12px;padding:16px;text-align:center">' +
+          '<div style="font-size:0.72rem;color:#888;text-transform:uppercase;font-weight:700;letter-spacing:0.5px">✅ Wapas Aaya</div>' +
+          '<div style="font-size:1.5rem;font-weight:900;color:#2da44e;margin-top:4px">₹'+Number(totalReceived).toLocaleString('en-IN')+'</div>' +
+        '</div>' +
+        '<div style="background:#fff5f5;border:2px solid #cf222e;border-radius:12px;padding:16px;text-align:center">' +
+          '<div style="font-size:0.72rem;color:#888;text-transform:uppercase;font-weight:700;letter-spacing:0.5px">⏳ Baaki Hai</div>' +
+          '<div style="font-size:1.5rem;font-weight:900;color:#cf222e;margin-top:4px">₹'+Number(totalPending).toLocaleString('en-IN')+'</div>' +
+        '</div>' +
+      '</div>' +
+      '<div style="font-size:0.82rem;color:#888;margin-bottom:18px;font-weight:600">📋 Kul Loans: '+loans.length+'</div>' +
+      loanSections +
+      '<div style="text-align:center;color:#aaa;font-size:0.75rem;margin-top:24px;padding-top:16px;border-top:1px solid #eee">Generated by Udhar Khata — '+today+'</div>' +
+      '<button class="no-print" onclick="window.print()" style="position:fixed;bottom:20px;right:20px;background:#d4920a;color:#fff;border:none;border-radius:12px;padding:12px 20px;font-size:1rem;font-weight:700;cursor:pointer">🖨️ Print / Save PDF</button>' +
+      '</body></html>';
+
+    var win = window.open('', '_blank');
+    win.document.write(html);
+    win.document.close();
+    showToast('🖨️ Sabka PDF ready ho gaya!');
+  }
+
+  // ===== PWA Service Worker Registration =====
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function() {
+      navigator.serviceWorker.register('sw.js').catch(function(){});
+    });
+  }
+
+  // ===== SMART INIT =====
+  loadTheme();
+  loadData();
+  renderAll();
+  updateBinBadge();
+  updateOwnerDisplay();
+  document.getElementById('startDate').valueAsDate = new Date();
+
+  (function() {
+    var profile  = getProfile();
+    var hasData  = !!localStorage.getItem(STORAGE_KEY);
+
+    if (!profile) {
+      // Bilkul pehli baar — welcome screen, step 1
+      document.getElementById('lockScreen').classList.add('hidden');
+      document.getElementById('welcomeScreen').classList.remove('hidden');
+      showStep(1);
+    } else if (!hasData || loans.length === 0) {
+      // Profile hai lekin data nahi — data clear hua
+      // Normal lock screen dikhao, after unlock restore offer karein
+      var _orig = window.checkPassword;
+      window.checkPassword = function() {
+        _orig();
+        if (!document.getElementById('lockScreen').classList.contains('hidden')) return;
+        if (loans.length === 0) showRestoreScreen();
+      };
+    }
+    // Else: sab theek hai — lockScreen already visible
+  })();
+</script>
+</body>
+</html>
