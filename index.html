@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="hi" data-theme="dark">
 <head>
@@ -944,27 +945,41 @@
   function startFresh() { showStep(2); }
 
   function restoreFromFile(event) {
-    var file = event.target.files[0];
-    if (!file) return;
-    var reader = new FileReader();
-    reader.onload = function(e) {
-      try {
-        var data = JSON.parse(e.target.result);
-        if (!data.loans && !data.profile) { showToast('❌ Galat file! Sahi backup chunein.'); return; }
-        if (data.loans)    { localStorage.setItem(STORAGE_KEY, JSON.stringify(data.loans)); loans = data.loans; }
-        if (data.bin)      { localStorage.setItem(BIN_KEY, JSON.stringify(data.bin)); bin = data.bin; }
-        if (data.profile)  { saveProfile(data.profile); }
-        if (data.password) { localStorage.setItem(PW_KEY, data.password); }
-        document.getElementById('welcomeScreen').classList.add('hidden');
-        document.getElementById('lockScreen').classList.remove('hidden');
-        updateOwnerDisplay();
-        renderAll();
-        updateBinBadge();
-        showToast('✅ ' + loans.length + ' loans restore ho gaye! Login karein.');
-      } catch(err) { showToast('❌ File mein koi problem. Sahi backup chunein.'); }
-    };
-    reader.readAsText(file);
-    event.target.value = '';
+    try {
+      var file = event.target.files[0];
+      if (!file) return;
+      if (!file.name.endsWith('.json')) { showToast('❌ Sirf .json backup file chunein!'); return; }
+      var reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          var data = JSON.parse(e.target.result);
+          if (!data || typeof data !== 'object') { showToast('❌ Galat file format!'); return; }
+          if (!data.loans && !data.profile) { showToast('❌ Yeh Udhar Khata backup nahi hai!'); return; }
+          if (data.loans) {
+            var cleanLoans = safeArr(data.loans).map(sanitizeLoan).filter(Boolean);
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(cleanLoans));
+            loans = cleanLoans;
+          }
+          if (data.bin) {
+            var cleanBin = safeArr(data.bin).map(sanitizeLoan).filter(Boolean);
+            localStorage.setItem(BIN_KEY, JSON.stringify(cleanBin));
+            bin = cleanBin;
+          }
+          if (data.profile && typeof data.profile === 'object') saveProfile(data.profile);
+          if (data.password && String(data.password).length >= 4) localStorage.setItem(PW_KEY, String(data.password));
+          document.getElementById('welcomeScreen').classList.add('hidden');
+          document.getElementById('lockScreen').classList.remove('hidden');
+          updateOwnerDisplay(); renderAll(); updateBinBadge();
+          showToast('✅ ' + loans.length + ' loans restore ho gaye! Login karein.');
+        } catch(err) {
+          showToast('❌ File corrupt lag rahi hai. Sahi backup chunein.');
+          console.error('Restore error:', err);
+        }
+      };
+      reader.onerror = function() { showToast('❌ File read nahi ho saki!'); };
+      reader.readAsText(file);
+    } catch(err) { showToast('❌ Restore fail hua!'); }
+    try { event.target.value = ''; } catch(e){}
   }
 
   // ===== BACKUP DOWNLOAD =====
@@ -1038,25 +1053,58 @@
     document.getElementById('themeText').textContent = saved === 'dark' ? 'Light Mode' : 'Dark Mode';
   }
 
+  function safeNum(v, def) { var n = Number(v); return (isNaN(n)||n==null) ? (def||0) : n; }
+  function safeStr(v) { return (v==null||v===undefined) ? '' : String(v); }
+  function safeArr(v) { return Array.isArray(v) ? v : []; }
+
+  function sanitizeLoan(l) {
+    if (!l || typeof l !== 'object') return null;
+    try {
+      l.id        = l.id || Date.now();
+      l.name      = safeStr(l.name) || 'Unknown';
+      l.phone     = safeStr(l.phone);
+      l.note      = safeStr(l.note);
+      l.principal = safeNum(l.principal, 0);
+      l.rate      = safeNum(l.rate, 0);
+      l.months    = safeNum(l.months, 1) || 1;
+      l.totalInterest = safeNum(l.totalInterest, 0);
+      l.totalAmount   = safeNum(l.totalAmount, l.principal);
+      l.emi           = safeNum(l.emi, 0);
+      l.startDate     = safeStr(l.startDate);
+      l.addedAt       = safeStr(l.addedAt);
+      l.showSchedule  = !!l.showSchedule;
+      l.showNoteEdit  = false; // always reset on load
+      l.emis = safeArr(l.emis).map(function(e) {
+        return {
+          month:   safeNum(e.month, 1),
+          dueDate: safeStr(e.dueDate),
+          amount:  safeNum(e.amount, 0),
+          paid:    !!e.paid,
+          paidDate: e.paidDate ? safeStr(e.paidDate) : null
+        };
+      });
+      return l;
+    } catch(ex) { return null; }
+  }
+
   function loadData() {
     try {
       var raw = localStorage.getItem(STORAGE_KEY);
       if (!raw) { var old = localStorage.getItem('udharKhata_v2'); if (old) raw = old; }
-      loans = raw ? JSON.parse(raw) : [];
-      loans.forEach(function(l) {
-        if (!l.note) l.note = '';
-        if (!l.phone) l.phone = '';
-        if (l.showNoteEdit === undefined) l.showNoteEdit = false;
-      });
+      var parsed = raw ? JSON.parse(raw) : [];
+      loans = safeArr(parsed).map(sanitizeLoan).filter(Boolean);
     } catch(e) { loans = []; }
     try {
       var binRaw = localStorage.getItem(BIN_KEY);
-      bin = binRaw ? JSON.parse(binRaw) : [];
+      var parsedBin = binRaw ? JSON.parse(binRaw) : [];
+      bin = safeArr(parsedBin).map(sanitizeLoan).filter(Boolean);
     } catch(e) { bin = []; }
   }
 
   function saveData() {
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(loans)); } catch(e) {}
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(loans)); } catch(e) {
+      showToast('⚠️ Storage full! Purana data clear karo.');
+    }
     try { localStorage.setItem(BIN_KEY, JSON.stringify(bin)); } catch(e) {}
     updateBinBadge();
   }
@@ -1082,58 +1130,70 @@
   }
 
   function addLoan() {
-    var name = document.getElementById('borrowerName').value.trim();
-    var rawPhone = document.getElementById('borrowerPhone').value.trim().replace(/\D/g,'');
-    var phone = rawPhone ? (rawPhone.startsWith('91') && rawPhone.length === 12 ? rawPhone : '91' + rawPhone) : '';
-    var amount = parseFloat(document.getElementById('loanAmount').value);
-    var rate = parseFloat(document.getElementById('interestRate').value);
-    var months = parseInt(document.getElementById('loanMonths').value);
-    var startDate = document.getElementById('startDate').value;
-    var note = document.getElementById('loanNote').value.trim();
+    try {
+      var name = (document.getElementById('borrowerName').value||'').trim();
+      var rawPhone = (document.getElementById('borrowerPhone').value||'').trim().replace(/\D/g,'');
+      var phone = rawPhone ? (rawPhone.startsWith('91') && rawPhone.length===12 ? rawPhone : '91'+rawPhone) : '';
+      var amount = parseFloat(document.getElementById('loanAmount').value);
+      var rate = parseFloat(document.getElementById('interestRate').value);
+      var months = parseInt(document.getElementById('loanMonths').value);
+      var startDate = document.getElementById('startDate').value;
+      var note = (document.getElementById('loanNote').value||'').trim();
 
-    if (!name) { showToast('❌ Naam daalo bhai!'); return; }
-    if (!amount || amount <= 0) { showToast('❌ Amount sahi daalo!'); return; }
-    if (isNaN(rate) || rate < 0) { showToast('❌ Interest rate daalo!'); return; }
-    if (!months || months < 1) { showToast('❌ Months daalo!'); return; }
-    if (!startDate) { showToast('❌ Date select karo!'); return; }
+      if (!name) { showToast('❌ Naam daalo bhai!'); return; }
+      if (!amount || isNaN(amount) || amount <= 0) { showToast('❌ Amount sahi daalo!'); return; }
+      if (isNaN(rate) || rate < 0) { showToast('❌ Interest rate daalo!'); return; }
+      if (!months || isNaN(months) || months < 1 || months > 600) { showToast('❌ Months 1-600 ke beech daalo!'); return; }
+      if (!startDate) { showToast('❌ Date select karo!'); return; }
 
-    var totalInterest = amount * (rate / 100) * months;
-    var totalAmount = amount + totalInterest;
-    var emi = totalAmount / months;
-    var emis = [];
-    var start = new Date(startDate);
-    for (var i = 0; i < months; i++) {
-      var dd = new Date(start.getFullYear(), start.getMonth() + i + 1, start.getDate());
-      emis.push({ month: i+1, dueDate: dd.toISOString().split('T')[0], amount: Math.round(emi), paid: false, paidDate: null });
+      var totalInterest = amount * (rate / 100) * months;
+      var totalAmount = amount + totalInterest;
+      var emi = totalAmount / months;
+      var emis = [];
+      var start = new Date(startDate);
+      if (isNaN(start.getTime())) { showToast('❌ Date sahi nahi hai!'); return; }
+      for (var i = 0; i < months; i++) {
+        var dd = new Date(start.getFullYear(), start.getMonth() + i + 1, start.getDate());
+        emis.push({ month: i+1, dueDate: dd.toISOString().split('T')[0], amount: Math.round(emi), paid: false, paidDate: null });
+      }
+      loans.push({
+        id: Date.now(), name: name, phone: phone,
+        principal: amount, rate: rate, months: months,
+        totalInterest: Math.round(totalInterest), totalAmount: Math.round(totalAmount),
+        emi: Math.round(emi), startDate: startDate, emis: emis,
+        showSchedule: false, note: note, showNoteEdit: false,
+        addedAt: new Date().toLocaleString('en-IN', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit', hour12: true })
+      });
+      saveData(); renderAll();
+      ['borrowerName','borrowerPhone','loanAmount','interestRate','loanMonths','loanNote'].forEach(function(id){
+        var el = document.getElementById(id); if(el) el.value='';
+      });
+      showToast('✅ Loan add ho gaya!');
+      try { window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }); } catch(e){}
+    } catch(err) {
+      showToast('❌ Kuch galat hua! Dobara try karo.');
+      console.error('addLoan error:', err);
     }
-    loans.push({
-      id: Date.now(), name: name, phone: phone,
-      principal: amount, rate: rate, months: months,
-      totalInterest: Math.round(totalInterest), totalAmount: Math.round(totalAmount),
-      emi: Math.round(emi), startDate: startDate, emis: emis,
-      showSchedule: false, note: note, showNoteEdit: false,
-      addedAt: new Date().toLocaleString('en-IN', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit', hour12: true })
-    });
-    saveData(); renderAll();
-    ['borrowerName','borrowerPhone','loanAmount','interestRate','loanMonths','loanNote'].forEach(function(id){ document.getElementById(id).value=''; });
-    showToast('✅ Loan add ho gaya!');
-    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
   }
 
   function markPaid(loanId, emiIdx) {
-    var loan = loans.find(function(l){ return l.id===loanId; });
-    if (!loan) return;
-    loan.emis[emiIdx].paid = true;
-    loan.emis[emiIdx].paidDate = today;
-    saveData(); renderAll(); showToast('✅ EMI PAID ho gayi!');
+    try {
+      var loan = loans.find(function(l){ return l.id===loanId; });
+      if (!loan || !loan.emis || emiIdx < 0 || emiIdx >= loan.emis.length) return;
+      loan.emis[emiIdx].paid = true;
+      loan.emis[emiIdx].paidDate = today;
+      saveData(); renderAll(); showToast('✅ EMI PAID ho gayi!');
+    } catch(e) { showToast('❌ Kuch galat hua!'); }
   }
 
   function markUnpaid(loanId, emiIdx) {
-    var loan = loans.find(function(l){ return l.id===loanId; });
-    if (!loan) return;
-    loan.emis[emiIdx].paid = false;
-    loan.emis[emiIdx].paidDate = null;
-    saveData(); renderAll(); showToast('🔄 EMI UNPAID mark ho gayi!');
+    try {
+      var loan = loans.find(function(l){ return l.id===loanId; });
+      if (!loan || !loan.emis || emiIdx < 0 || emiIdx >= loan.emis.length) return;
+      loan.emis[emiIdx].paid = false;
+      loan.emis[emiIdx].paidDate = null;
+      saveData(); renderAll(); showToast('🔄 EMI UNPAID mark ho gayi!');
+    } catch(e) { showToast('❌ Kuch galat hua!'); }
   }
 
   function askDelete(id) { pendingDeleteId = id; document.getElementById('confirmOverlay').classList.add('show'); }
@@ -1446,11 +1506,8 @@
       '<div style="margin-top:30px;text-align:center;color:#aaa;font-size:0.78rem">Generated by Udhar Khata</div>' +
       '</body></html>';
 
-    var win = window.open('', '_blank');
-    win.document.write(html);
-    win.document.close();
-    setTimeout(function(){ win.print(); }, 500);
-    showToast('🖨️ '+loan.name+' ka PDF print ho raha hai!');
+    var win = safeOpenWindow(html, '❌ PDF open nahi ho saka! Popup allow karo.');
+    if (win) { setTimeout(function(){ try { win.print(); } catch(e){} }, 500); showToast('🖨️ '+loan.name+' ka PDF print ho raha hai!'); }
   }
 
   function exportCSV() {
@@ -1590,8 +1647,9 @@
         '</div>' +
         '<div class="loan-details">' +
           '<div class="detail-item"><div class="detail-label">Principal</div><div class="detail-value gold">'+fmt(loan.principal)+'</div></div>' +
-          '<div class="detail-item"><div class="detail-label">Interest</div><div class="detail-value orange">'+fmt(loan.totalInterest)+'</div></div>' +
+          '<div class="detail-item"><div class="detail-label">Interest (Total)</div><div class="detail-value orange">'+fmt(loan.totalInterest)+'</div></div>' +
           '<div class="detail-item"><div class="detail-label">Total</div><div class="detail-value gold">'+fmt(loan.totalAmount)+'</div></div>' +
+          '<div class="detail-item"><div class="detail-label">📈 Monthly Rate</div><div class="detail-value orange" style="font-size:1rem;font-weight:900">'+loan.rate+'<span style="font-size:0.72rem;font-weight:600">% / mo</span></div></div>' +
           '<div class="detail-item"><div class="detail-label">Monthly EMI</div><div class="detail-value purple">'+fmt(loan.emi)+'</div></div>' +
           '<div class="detail-item"><div class="detail-label">Wapas Aaya</div><div class="detail-value green">'+fmt(pa)+'</div></div>' +
           '<div class="detail-item"><div class="detail-label">Baaki Hai</div><div class="detail-value red">'+fmt(pend)+'</div></div>' +
@@ -1624,7 +1682,14 @@
     }).join('');
   }
 
-  function renderAll() { updateStats(); renderLoans(); }
+  function renderAll() {
+    try { updateStats(); } catch(e) { console.error('updateStats error:', e); }
+    try { renderLoans(); } catch(e) {
+      console.error('renderLoans error:', e);
+      var list = document.getElementById('loansList');
+      if (list) list.innerHTML = '<div class="empty-state"><div class="icon">⚠️</div><p>Display mein kuch gadbad hui. Page refresh karo.</p></div>';
+    }
+  }
   function copyEmiReminder(loanId) {
     var loan = loans.find(function(l){ return l.id===loanId; });
     if (!loan) return;
@@ -1660,6 +1725,22 @@
         showToast('📋 ' + loan.name + ' ka reminder copy ho gaya!');
       }).catch(function() { fallbackCopy(msg, loan.name); });
     } else { fallbackCopy(msg, loan.name); }
+  }
+
+  function safeOpenWindow(html, fallbackMsg) {
+    try {
+      var win = window.open('', '_blank');
+      if (!win || win.closed || typeof win.closed === 'undefined') {
+        showToast('⚠️ Popup blocked! Browser mein popup allow karo.');
+        return null;
+      }
+      win.document.write(html);
+      win.document.close();
+      return win;
+    } catch(e) {
+      showToast(fallbackMsg || '❌ PDF open nahi ho saka!');
+      return null;
+    }
   }
 
   function fallbackCopy(text, name) {
@@ -1770,10 +1851,7 @@
       '<button class="no-print" onclick="window.print()" style="position:fixed;bottom:20px;right:20px;background:#d4920a;color:#fff;border:none;border-radius:12px;padding:12px 20px;font-size:1rem;font-weight:700;cursor:pointer">🖨️ Print / Save PDF</button>' +
       '</body></html>';
 
-    var win = window.open('', '_blank');
-    win.document.write(html);
-    win.document.close();
-    showToast('🖨️ Sabka PDF ready ho gaya!');
+    if (safeOpenWindow(html, '❌ PDF open nahi ho saka! Popup allow karo.')) showToast('🖨️ Sabka PDF ready ho gaya!');
   }
 
   // ===== PWA Service Worker Registration =====
@@ -2254,10 +2332,7 @@
       '<button onclick="window.print()" style="background:#d4920a;color:#fff;border:none;border-radius:10px;padding:12px 28px;font-size:0.95rem;font-weight:700;cursor:pointer">🖨️ Print / Save PDF</button>'+
     '</div></body></html>';
 
-    var win = window.open('', '_blank');
-    win.document.write(html);
-    win.document.close();
-    showToast('🖨️ '+loan.name+' ka Professional Invoice ready!');
+    if (safeOpenWindow(html, '❌ Invoice open nahi ho saka! Popup allow karo.')) showToast('🖨️ '+loan.name+' ka Professional Invoice ready!');
   }
 
   loadTheme();
