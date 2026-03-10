@@ -1065,66 +1065,46 @@
   }
 
   function cloudSave(showMsg) {
-    if (!JBIN_KEY || !JBIN_ID) { if(showMsg) showToast('⚠️ Cloud sync setup nahi hai! Settings mein jaao.'); return; }
-    if (isSyncing) return;
-    isSyncing = true;
-    showSyncStatus('☁️ Saving...', 'var(--accent)');
-    var payload = {
-      loans: loans,
-      bin: bin,
-      savedAt: new Date().toLocaleString('en-IN'),
-      profile: getProfile()
-    };
-    fetch(JBIN_URL, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Access-Key': JBIN_KEY
-      },
-      body: JSON.stringify(payload)
-    })
-    .then(function(r) {
-      if (!r.ok) throw new Error('HTTP ' + r.status);
-      return r.json();
-    })
-    .then(function() {
-      isSyncing = false;
-      lastCloudSync = new Date();
-      showSyncStatus('✅ Synced', 'var(--green)');
-      if (showMsg) showToast('☁️ Cloud backup ho gaya!');
-      setTimeout(function(){ showSyncStatus('☁️ Cloud Sync ON', 'var(--green)'); }, 3000);
-    })
-    .catch(function(err) {
-      isSyncing = false;
-      showSyncStatus('⚠️ Sync failed', 'var(--red)');
-      console.error('Cloud save error:', err);
-    });
-  }
-
-  function cloudSave(showMsg) {
     if (!JBIN_KEY || !JBIN_ID) { if(showMsg) showToast('⚠️ Cloud sync setup nahi hai!'); return; }
     if (isSyncing) return;
     isSyncing = true;
-    showSyncStatus('☁️ Saving...', 'var(--accent)');
-    var payload = {
-      loans: loans,
-      bin: bin,
-      savedAt: new Date().toLocaleString('en-IN'),
-      savedAtMs: Date.now(),
-      profile: getProfile(),
-      password: localStorage.getItem(PW_KEY) || '1234'
-    };
-    fetch(JBIN_URL, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json', 'X-Access-Key': JBIN_KEY },
-      body: JSON.stringify(payload)
+    showSyncStatus('☁️ Syncing...', 'var(--accent)');
+
+    // Pehle cloud ka latest data lao, merge karo, PHIR save karo
+    fetch(JBIN_URL + '/latest', { headers: { 'X-Access-Key': JBIN_KEY } })
+    .then(function(r) { return r.ok ? r.json() : { record: null }; })
+    .then(function(data) {
+      var rec = data.record;
+      // Cloud se merge karo — dono devices ki entries bachao
+      if (rec && rec.loans) {
+        var cloudLoans = safeArr(rec.loans).map(sanitizeLoan).filter(Boolean);
+        var cloudBin   = safeArr(rec.bin).map(sanitizeLoan).filter(Boolean);
+        loans = mergeById(cloudLoans, loans); // local wins on conflict (local is latest change)
+        bin   = mergeById(cloudBin, bin);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(loans));
+        localStorage.setItem(BIN_KEY, JSON.stringify(bin));
+        renderAll(); updateBinBadge();
+      }
+      // Ab merged data cloud pe save karo
+      var payload = {
+        loans: loans, bin: bin,
+        savedAt: new Date().toLocaleString('en-IN'),
+        savedAtMs: Date.now(),
+        profile: getProfile(),
+        password: localStorage.getItem(PW_KEY) || '1234'
+      };
+      return fetch(JBIN_URL, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'X-Access-Key': JBIN_KEY },
+        body: JSON.stringify(payload)
+      });
     })
     .then(function(r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
     .then(function() {
       isSyncing = false;
       lastCloudSync = Date.now();
       showSyncStatus('✅ Synced ' + new Date().toLocaleTimeString('en-IN', {hour:'2-digit', minute:'2-digit'}), 'var(--green)');
-      if (showMsg) showToast('☁️ Cloud backup ho gaya!');
+      if (showMsg) showToast('☁️ Cloud sync ho gaya!');
       setTimeout(function(){ showSyncStatus('☁️ Cloud Sync ON', 'var(--green)'); }, 3000);
     })
     .catch(function(err) {
@@ -1160,8 +1140,7 @@
       // Smart merge by ID
       var mergedLoans = mergeById(loans, cloudLoans);
       var mergedBin   = mergeById(bin, cloudBin);
-      var changed = JSON.stringify(mergedLoans) !== JSON.stringify(loans) ||
-                    JSON.stringify(mergedBin)   !== JSON.stringify(bin);
+
       loans = mergedLoans;
       bin   = mergedBin;
       localStorage.setItem(STORAGE_KEY, JSON.stringify(loans));
@@ -1173,7 +1152,7 @@
       // Password sync — naya device pe set karo
       if (rec.password) localStorage.setItem(PW_KEY, rec.password);
 
-      if (changed) { renderAll(); updateBinBadge(); updateOwnerDisplay(); }
+      renderAll(); updateBinBadge(); updateOwnerDisplay();
       showSyncStatus('☁️ Cloud Sync ON', 'var(--green)');
       lastCloudSync = Date.now();
     })
@@ -1183,13 +1162,13 @@
     });
   }
 
-  // Auto-poll every 45 sec — dono devices sync rehte hain
+  // Auto-poll every 15 sec — dono devices sync rehte hain
   function startCloudPolling() {
     if (!JBIN_KEY || !JBIN_ID) return;
     setInterval(function() {
       var locked = !document.getElementById('lockScreen').classList.contains('hidden');
       if (!locked && !isSyncing) cloudLoad();
-    }, 45000);
+    }, 15000);
   }
 
   // ===== MULTI PROFILE KEYS =====
