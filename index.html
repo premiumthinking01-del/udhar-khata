@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="hi" data-theme="dark">
 <head>
@@ -583,13 +582,19 @@
   <div class="lock-box">
     <div class="lock-icon">🔐</div>
     <div class="lock-title">Udhar Khata</div>
-    <div class="lock-sub" id="lockOwnerLabel">Password enter karke open karo</div>
-    <input type="password" class="lock-input" id="lockInput" placeholder="••••" maxlength="10"
-      onkeydown="if(event.key==='Enter') checkPassword()" inputmode="numeric" />
-    <button class="btn-unlock" onclick="checkPassword()">🔓 Open Karo</button>
-    <div class="lock-hint" id="lockHint">Demo password: 1234</div>
+    <div class="lock-sub" id="lockOwnerLabel">Swagat hai! Kya karna chahte hain?</div>
 
-    <div style="margin-top:24px;border-top:1px solid var(--border);padding-top:18px;display:flex;flex-direction:column;gap:10px">
+    <!-- Password section — sirf tab dikhega jab profile ho -->
+    <div id="lockPasswordSection" style="display:none;width:100%">
+      <input type="password" class="lock-input" id="lockInput" placeholder="••••" maxlength="10"
+        onkeydown="if(event.key==='Enter') checkPassword()" inputmode="numeric" />
+      <button class="btn-unlock" onclick="checkPassword()">🔓 Open Karo</button>
+      <div class="lock-hint" id="lockHint">Demo password: 1234</div>
+      <div style="height:1px;background:var(--border);margin:20px 0"></div>
+    </div>
+
+    <!-- Teenon options hamesha -->
+    <div style="display:flex;flex-direction:column;gap:10px;width:100%">
       <button onclick="goToWelcome('fresh')" style="background:linear-gradient(135deg,rgba(240,165,0,0.12),rgba(255,107,53,0.08));border:1.5px solid rgba(240,165,0,0.4);border-radius:12px;padding:11px 16px;color:var(--text);font-family:inherit;font-size:0.85rem;font-weight:700;cursor:pointer;width:100%;text-align:left;display:flex;align-items:center;gap:10px">
         <span style="font-size:1.3rem">🆕</span>
         <div>
@@ -664,22 +669,54 @@
         </div>
         <div style="font-size:0.72rem;color:var(--muted);margin-top:5px">WhatsApp reminder ke liye number daalna zaroori hai</div>
       </div>
+
+      <!-- Payment Type Toggle -->
+      <div class="field field-full">
+        <label>💳 Payment Type</label>
+        <div style="display:flex;gap:8px">
+          <button id="btnMonthly" onclick="setPayType('monthly')" style="flex:1;padding:11px;border-radius:10px;border:1.5px solid rgba(240,165,0,0.6);background:rgba(240,165,0,0.12);color:var(--accent);font-family:inherit;font-size:0.88rem;font-weight:800;cursor:pointer">📅 Monthly EMI</button>
+          <button id="btnFull"    onclick="setPayType('full')"    style="flex:1;padding:11px;border-radius:10px;border:1.5px solid var(--border);background:var(--surface);color:var(--muted);font-family:inherit;font-size:0.88rem;font-weight:800;cursor:pointer">💰 Full Payment</button>
+        </div>
+      </div>
+
       <div class="field">
         <label>Amount (₹)</label>
-        <input type="number" id="loanAmount" placeholder="50000" inputmode="numeric" />
+        <input type="number" id="loanAmount" placeholder="50000" inputmode="numeric" oninput="updateEmiPreview()" />
       </div>
       <div class="field">
         <label>Interest % / Month</label>
-        <input type="number" id="interestRate" placeholder="2" inputmode="decimal" step="0.1" min="0" />
+        <input type="number" id="interestRate" placeholder="2" inputmode="decimal" step="0.1" min="0" oninput="updateEmiPreview()" />
       </div>
-      <div class="field">
-        <label>Kitne Months</label>
-        <input type="number" id="loanMonths" placeholder="6" inputmode="numeric" min="1" max="120" />
+
+      <!-- Months field — dono modes mein, label change hoga -->
+      <div id="monthlyFields" class="field">
+        <label id="monthsLabel">Kitne Months (EMI)</label>
+        <input type="number" id="loanMonths" placeholder="6" inputmode="numeric" min="1" max="600" oninput="updateEmiPreview()" />
       </div>
+
       <div class="field">
         <label>Start Date</label>
         <input type="date" id="startDate" />
       </div>
+
+      <!-- EMI Preview box -->
+      <div id="emiPreviewBox" class="field field-full" style="display:none">
+        <div style="background:rgba(240,165,0,0.08);border:1.5px solid rgba(240,165,0,0.3);border-radius:12px;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+          <div id="emiPreviewMonthly" style="text-align:center;display:none">
+            <div style="font-size:0.7rem;color:var(--muted);text-transform:uppercase;font-weight:700">Monthly EMI</div>
+            <div id="emiPreviewAmt" style="font-size:1.3rem;font-weight:900;color:var(--accent)">₹0</div>
+          </div>
+          <div style="text-align:center">
+            <div style="font-size:0.7rem;color:var(--muted);text-transform:uppercase;font-weight:700">Total Interest</div>
+            <div id="emiPreviewInterest" style="font-size:1.1rem;font-weight:800;color:var(--red)">₹0</div>
+          </div>
+          <div style="text-align:center">
+            <div style="font-size:0.7rem;color:var(--muted);text-transform:uppercase;font-weight:700">Total Wapas</div>
+            <div id="emiPreviewTotal" style="font-size:1.1rem;font-weight:800;color:var(--green)">₹0</div>
+          </div>
+        </div>
+      </div>
+
       <div class="field field-full">
         <label>📝 Note (Optional)</label>
         <textarea id="loanNote" placeholder="Koi zaruri baat... jaise kaam ke liye liya, gaadi ke liye, etc."></textarea>
@@ -1064,15 +1101,55 @@
     });
   }
 
+  function cloudSave(showMsg) {
+    if (!JBIN_KEY || !JBIN_ID) { if(showMsg) showToast('⚠️ Cloud sync setup nahi hai!'); return; }
+    if (isSyncing) return;
+    isSyncing = true;
+    showSyncStatus('☁️ Saving...', 'var(--accent)');
+    var payload = {
+      loans: loans,
+      bin: bin,
+      savedAt: new Date().toLocaleString('en-IN'),
+      savedAtMs: Date.now(),
+      profile: getProfile(),
+      password: localStorage.getItem(PW_KEY) || '1234'
+    };
+    fetch(JBIN_URL, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'X-Access-Key': JBIN_KEY },
+      body: JSON.stringify(payload)
+    })
+    .then(function(r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+    .then(function() {
+      isSyncing = false;
+      lastCloudSync = Date.now();
+      showSyncStatus('✅ Synced ' + new Date().toLocaleTimeString('en-IN', {hour:'2-digit', minute:'2-digit'}), 'var(--green)');
+      if (showMsg) showToast('☁️ Cloud backup ho gaya!');
+      setTimeout(function(){ showSyncStatus('☁️ Cloud Sync ON', 'var(--green)'); }, 3000);
+    })
+    .catch(function(err) {
+      isSyncing = false;
+      showSyncStatus('⚠️ Sync failed — retry ho raha hai', 'var(--red)');
+      setTimeout(function(){ if(JBIN_KEY && JBIN_ID) cloudSave(false); }, 10000);
+      console.error('Cloud save error:', err);
+    });
+  }
+
+  // ID-based smart merge — cloud entry wins on same ID
+  function mergeById(localArr, cloudArr) {
+    var map = {};
+    safeArr(localArr).forEach(function(l){ if(l && l.id) map[l.id] = l; });
+    safeArr(cloudArr).forEach(function(l){ if(l && l.id) map[l.id] = l; }); // cloud override
+    return Object.values(map).sort(function(a,b){ return (a.id||0)-(b.id||0); });
+  }
+
   function cloudLoad() {
     if (!JBIN_KEY || !JBIN_ID) { showSyncStatus('☁️ Cloud Sync OFF', 'var(--muted)'); return; }
+    showSyncStatus('☁️ Syncing...', 'var(--accent)');
     fetch(JBIN_URL + '/latest', {
       headers: { 'X-Access-Key': JBIN_KEY }
     })
-    .then(function(r) {
-      if (!r.ok) throw new Error('HTTP ' + r.status);
-      return r.json();
-    })
+    .then(function(r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
     .then(function(data) {
       var rec = data.record;
       if (!rec) { showSyncStatus('☁️ Cloud Sync ON', 'var(--green)'); return; }
@@ -1080,26 +1157,39 @@
       var cloudLoans = safeArr(rec.loans).map(sanitizeLoan).filter(Boolean);
       var cloudBin   = safeArr(rec.bin).map(sanitizeLoan).filter(Boolean);
 
-      // Merge — cloud data newer hoga to replace karo
-      if (cloudLoans.length > 0 || loans.length === 0) {
-        loans = cloudLoans;
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(loans));
-      }
-      if (cloudBin.length > 0) {
-        bin = cloudBin;
-        localStorage.setItem(BIN_KEY, JSON.stringify(bin));
-      }
-      if (rec.profile && typeof rec.profile === 'object') {
-        saveProfile(rec.profile);
-      }
-      renderAll(); updateBinBadge(); updateOwnerDisplay();
-      showSyncStatus('✅ Cloud data loaded', 'var(--green)');
-      setTimeout(function(){ showSyncStatus('☁️ Cloud Sync ON', 'var(--green)'); }, 3000);
+      // Smart merge by ID
+      var mergedLoans = mergeById(loans, cloudLoans);
+      var mergedBin   = mergeById(bin, cloudBin);
+      var changed = JSON.stringify(mergedLoans) !== JSON.stringify(loans) ||
+                    JSON.stringify(mergedBin)   !== JSON.stringify(bin);
+      loans = mergedLoans;
+      bin   = mergedBin;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(loans));
+      localStorage.setItem(BIN_KEY, JSON.stringify(bin));
+
+      // Profile sync
+      if (rec.profile && typeof rec.profile === 'object') saveProfile(rec.profile);
+
+      // Password sync — naya device pe set karo
+      if (rec.password) localStorage.setItem(PW_KEY, rec.password);
+
+      if (changed) { renderAll(); updateBinBadge(); updateOwnerDisplay(); }
+      showSyncStatus('☁️ Cloud Sync ON', 'var(--green)');
+      lastCloudSync = Date.now();
     })
     .catch(function(err) {
-      showSyncStatus('⚠️ Cloud load failed', 'var(--red)');
+      showSyncStatus('⚠️ Sync failed', 'var(--red)');
       console.error('Cloud load error:', err);
     });
+  }
+
+  // Auto-poll every 45 sec — dono devices sync rehte hain
+  function startCloudPolling() {
+    if (!JBIN_KEY || !JBIN_ID) return;
+    setInterval(function() {
+      var locked = !document.getElementById('lockScreen').classList.contains('hidden');
+      if (!locked && !isSyncing) cloudLoad();
+    }, 45000);
   }
 
   // ===== MULTI PROFILE KEYS =====
@@ -1230,8 +1320,9 @@
   function goToWelcome(panel) {
     document.getElementById('lockScreen').classList.add('hidden');
     document.getElementById('welcomeScreen').classList.remove('hidden');
-    if (panel === 'cloud')   showStep(4);
+    if (panel === 'cloud')        showStep(4);
     else if (panel === 'restore') showStep(3);
+    else if (panel === 'fresh')   showStep(2); // seedha setup form
     else showStep(1);
   }
 
@@ -1319,7 +1410,10 @@
 
   function lockApp() {
     document.getElementById('lockScreen').classList.remove('hidden');
-    document.getElementById('lockInput').value = '';
+    var li = document.getElementById('lockInput');
+    if (li) li.value = '';
+    var pwSec = document.getElementById('lockPasswordSection');
+    if (pwSec) pwSec.style.display = 'block';
   }
 
   function changePassword() {
@@ -1349,6 +1443,53 @@
     document.documentElement.setAttribute('data-theme', saved);
     document.getElementById('themeIcon').textContent = saved === 'dark' ? '☀️' : '🌙';
     document.getElementById('themeText').textContent = saved === 'dark' ? 'Light Mode' : 'Dark Mode';
+  }
+
+  var payType = 'monthly'; // 'monthly' or 'full'
+
+  function setPayType(type) {
+    payType = type;
+    var bm = document.getElementById('btnMonthly');
+    var bf = document.getElementById('btnFull');
+    var ml = document.getElementById('monthsLabel');
+    if (type === 'monthly') {
+      bm.style.background = 'rgba(240,165,0,0.12)'; bm.style.borderColor = 'rgba(240,165,0,0.6)'; bm.style.color = 'var(--accent)';
+      bf.style.background = 'var(--surface)';        bf.style.borderColor = 'var(--border)';         bf.style.color = 'var(--muted)';
+      if (ml) ml.textContent = 'Kitne Months (EMI)';
+    } else {
+      bf.style.background = 'rgba(63,185,80,0.12)'; bf.style.borderColor = 'rgba(63,185,80,0.5)'; bf.style.color = 'var(--green)';
+      bm.style.background = 'var(--surface)';       bm.style.borderColor = 'var(--border)';        bm.style.color = 'var(--muted)';
+      if (ml) ml.textContent = 'Kitne Mahine Ke Liye Diya';
+    }
+    updateEmiPreview();
+  }
+
+  function updateEmiPreview() {
+    var amount  = parseFloat(document.getElementById('loanAmount').value) || 0;
+    var rate    = parseFloat(document.getElementById('interestRate').value) || 0;
+    var months  = parseInt(document.getElementById('loanMonths').value) || 0;
+    var previewBox    = document.getElementById('emiPreviewBox');
+    var prevMonthly   = document.getElementById('emiPreviewMonthly');
+    if (!amount || !months) { previewBox.style.display = 'none'; return; }
+
+    if (payType === 'monthly') {
+      var totalInterest = amount * (rate / 100) * months;
+      var totalAmount   = amount + totalInterest;
+      var emi           = totalAmount / months;
+      previewBox.style.display = '';
+      prevMonthly.style.display = '';
+      document.getElementById('emiPreviewAmt').textContent      = '₹' + Math.round(emi).toLocaleString('en-IN');
+      document.getElementById('emiPreviewInterest').textContent = '₹' + Math.round(totalInterest).toLocaleString('en-IN');
+      document.getElementById('emiPreviewTotal').textContent    = '₹' + Math.round(totalAmount).toLocaleString('en-IN');
+    } else {
+      // Full payment — interest = amount * rate * months / 100
+      var totalInterest = amount * (rate / 100) * months;
+      var totalAmount   = amount + totalInterest;
+      previewBox.style.display = '';
+      prevMonthly.style.display = 'none';
+      document.getElementById('emiPreviewInterest').textContent = '₹' + Math.round(totalInterest).toLocaleString('en-IN');
+      document.getElementById('emiPreviewTotal').textContent    = '₹' + Math.round(totalAmount).toLocaleString('en-IN');
+    }
   }
 
   function safeNum(v, def) { var n = Number(v); return (isNaN(n)||n==null) ? (def||0) : n; }
@@ -1435,29 +1576,45 @@
       var phone = rawPhone ? (rawPhone.startsWith('91') && rawPhone.length===12 ? rawPhone : '91'+rawPhone) : '';
       var amount = parseFloat(document.getElementById('loanAmount').value);
       var rate = parseFloat(document.getElementById('interestRate').value);
-      var months = parseInt(document.getElementById('loanMonths').value);
       var startDate = document.getElementById('startDate').value;
       var note = (document.getElementById('loanNote').value||'').trim();
 
       if (!name) { showToast('❌ Naam daalo bhai!'); return; }
       if (!amount || isNaN(amount) || amount <= 0) { showToast('❌ Amount sahi daalo!'); return; }
       if (isNaN(rate) || rate < 0) { showToast('❌ Interest rate daalo!'); return; }
-      if (!months || isNaN(months) || months < 1 || months > 600) { showToast('❌ Months 1-600 ke beech daalo!'); return; }
       if (!startDate) { showToast('❌ Date select karo!'); return; }
-
-      var totalInterest = amount * (rate / 100) * months;
-      var totalAmount = amount + totalInterest;
-      var emi = totalAmount / months;
-      var emis = [];
       var start = new Date(startDate);
       if (isNaN(start.getTime())) { showToast('❌ Date sahi nahi hai!'); return; }
-      for (var i = 0; i < months; i++) {
-        var dd = new Date(start.getFullYear(), start.getMonth() + i + 1, start.getDate());
-        emis.push({ month: i+1, dueDate: dd.toISOString().split('T')[0], amount: Math.round(emi), paid: false, paidDate: null });
+
+      var emis = [];
+      var totalInterest, totalAmount, emi, months;
+
+      if (payType === 'full') {
+        months = parseInt(document.getElementById('loanMonths').value);
+        if (!months || isNaN(months) || months < 1) { showToast('❌ Kitne mahine ke liye diya — daalo!'); return; }
+        totalInterest = amount * (rate / 100) * months;
+        totalAmount   = amount + totalInterest;
+        emi           = totalAmount;
+        // Due date = start + months
+        var dd = new Date(start.getFullYear(), start.getMonth() + months, start.getDate());
+        emis.push({ month: months, dueDate: dd.toISOString().split('T')[0], amount: Math.round(totalAmount), paid: false, paidDate: null });
+      } else {
+        // Monthly EMI
+        months = parseInt(document.getElementById('loanMonths').value);
+        if (!months || isNaN(months) || months < 1 || months > 600) { showToast('❌ Months 1-600 ke beech daalo!'); return; }
+        totalInterest = amount * (rate / 100) * months;
+        totalAmount   = amount + totalInterest;
+        emi           = totalAmount / months;
+        for (var i = 0; i < months; i++) {
+          var dd = new Date(start.getFullYear(), start.getMonth() + i + 1, start.getDate());
+          emis.push({ month: i+1, dueDate: dd.toISOString().split('T')[0], amount: Math.round(emi), paid: false, paidDate: null });
+        }
       }
+
       loans.push({
         id: Date.now(), name: name, phone: phone,
         principal: amount, rate: rate, months: months,
+        payType: payType,
         totalInterest: Math.round(totalInterest), totalAmount: Math.round(totalAmount),
         emi: Math.round(emi), startDate: startDate, emis: emis,
         showSchedule: false, note: note, showNoteEdit: false,
@@ -1467,6 +1624,8 @@
       ['borrowerName','borrowerPhone','loanAmount','interestRate','loanMonths','loanNote'].forEach(function(id){
         var el = document.getElementById(id); if(el) el.value='';
       });
+      document.getElementById('emiPreviewBox').style.display = 'none';
+      setPayType('monthly'); // reset to monthly
       showToast('✅ Loan add ho gaya!');
       try { window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }); } catch(e){}
     } catch(err) {
@@ -1936,7 +2095,7 @@
         '<div class="loan-header">' +
           '<div>' +
             '<div class="borrower-name">👤 '+esc(loan.name)+'</div>' +
-            '<div class="loan-since">'+T('Since','Since')+' '+fmtDate(loan.startDate)+'</div>' +
+            '<div class="loan-since">'+T('Since','Since')+' '+fmtDate(loan.startDate)+(loan.payType==='full'?' &nbsp;<span style="background:rgba(63,185,80,0.15);border:1px solid rgba(63,185,80,0.4);border-radius:6px;padding:1px 7px;font-size:0.68rem;font-weight:800;color:var(--green)">💰 Full Payment</span>':'')+'</div>' +
             '<div class="loan-since" style="margin-top:2px">🕐 '+T('Added','Added')+': '+(loan.addedAt||'N/A')+'</div>' +
             (loan.phone ? '<div style="font-size:0.78rem;color:var(--green);margin-top:2px;font-weight:600">📱 +'+loan.phone+'</div>' : '<div style="font-size:0.72rem;color:var(--red);margin-top:2px">📵 '+T('No number','No number')+'</div>') +
             (loan.note?'<div class="loan-note-preview">'+esc(loan.note)+'</div>':'') +
@@ -1950,8 +2109,11 @@
           '<div class="detail-item"><div class="detail-label">'+T('Principal','Principal')+'</div><div class="detail-value gold">'+fmt(loan.principal)+'</div></div>' +
           '<div class="detail-item"><div class="detail-label">'+T('Interest (Total)','Interest (Total)')+'</div><div class="detail-value orange">'+fmt(loan.totalInterest)+'</div></div>' +
           '<div class="detail-item"><div class="detail-label">'+T('Total','Total')+'</div><div class="detail-value gold">'+fmt(loan.totalAmount)+'</div></div>' +
-          '<div class="detail-item"><div class="detail-label">📈 '+T('Monthly Rate','Monthly Rate')+'</div><div class="detail-value orange" style="font-size:1rem;font-weight:900">'+loan.rate+'<span style="font-size:0.72rem;font-weight:600">% / mo</span></div></div>' +
-          '<div class="detail-item"><div class="detail-label">'+T('Monthly EMI','Monthly EMI')+'</div><div class="detail-value purple">'+fmt(loan.emi)+'</div></div>' +
+          (loan.payType === 'full'
+            ? '<div class="detail-item"><div class="detail-label">⏳ '+T('Avadhi','Duration')+'</div><div class="detail-value orange" style="font-size:1rem;font-weight:900">'+loan.months+'<span style="font-size:0.72rem;font-weight:600"> '+T('Mahine','Months')+'</span></div></div>'
+            : '<div class="detail-item"><div class="detail-label">📈 '+T('Monthly Rate','Monthly Rate')+'</div><div class="detail-value orange" style="font-size:1rem;font-weight:900">'+loan.rate+'<span style="font-size:0.72rem;font-weight:600">% / mo</span></div></div>' +
+              '<div class="detail-item"><div class="detail-label">'+T('Monthly EMI','Monthly EMI')+'</div><div class="detail-value purple">'+fmt(loan.emi)+'</div></div>'
+          ) +
           '<div class="detail-item"><div class="detail-label">'+T('Wapas Aaya','Received')+'</div><div class="detail-value green">'+fmt(pa)+'</div></div>' +
           '<div class="detail-item"><div class="detail-label">'+T('Baaki Hai','Remaining')+'</div><div class="detail-value red">'+fmt(pend)+'</div></div>' +
         '</div>' +
@@ -2712,6 +2874,7 @@
       updateCloudBtn(true);
       showSyncStatus('☁️ Cloud Sync ON', 'var(--green)');
       showCloudMsg('✅ Connected! Data bhi sync ho gaya!', 'var(--green)');
+      startCloudPolling();
       setTimeout(function() {
         document.getElementById('cloudConfigured').style.display = 'block';
         document.getElementById('cloudSetupForm').style.display = 'none';
@@ -2852,21 +3015,33 @@
   updateBinBadge();
   updateOwnerDisplay();
   applyCustomization();
-  document.getElementById('langBtn').textContent = LANG === 'hi' ? '🌐 English' : '🌐 हिंदी';
+  var langBtnEl = document.getElementById('langBtn');
+  if (langBtnEl) langBtnEl.style.display = 'none'; // language button permanently hidden
   document.getElementById('startDate').valueAsDate = new Date();
-  // Cloud se latest data load karo
-  setTimeout(function(){ cloudLoad(); updateCloudBtn(!!(JBIN_KEY && JBIN_ID)); }, 1000);
+  setTimeout(function(){ cloudLoad(); updateCloudBtn(!!(JBIN_KEY && JBIN_ID)); if(JBIN_KEY && JBIN_ID) startCloudPolling(); }, 1000);
 
   (function() {
     var profile = getProfile();
     if (!profile) {
-      // Bilkul pehli baar — welcome screen dikhao
-      document.getElementById('lockScreen').classList.add('hidden');
-      document.getElementById('welcomeScreen').classList.remove('hidden');
-      showStep(1);
+      // Pehli baar — lockScreen dikhao sirf options ke saath (no password)
+      document.getElementById('lockScreen').classList.remove('hidden');
+      document.getElementById('welcomeScreen').classList.add('hidden');
+      // Password section hide rakho
+      var pwSec = document.getElementById('lockPasswordSection');
+      if (pwSec) pwSec.style.display = 'none';
+      var lol = document.getElementById('lockOwnerLabel');
+      if (lol) lol.textContent = 'Swagat hai! Kya karna chahte hain?';
+    } else {
+      // Returning user — password section bhi dikhao
+      var pwSec = document.getElementById('lockPasswordSection');
+      if (pwSec) pwSec.style.display = 'block';
+      updateOwnerDisplay();
+      var lol = document.getElementById('lockOwnerLabel');
+      if (lol) {
+        var p = profile;
+        lol.textContent = '👤 ' + p.name + (p.city ? ' • 📍 ' + p.city : '') + ' — password daalo';
+      }
     }
-    // Sab cases mein: lockScreen dikhega, password daalo, app khulega — simple!
-    // Restore karna ho toh: Logout → Welcome Screen → "Backup Se Restore"
   })();
 </script>
 </body>
