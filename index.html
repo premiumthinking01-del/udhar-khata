@@ -2957,7 +2957,9 @@
         saveProfile(rec.profile);
       }
 
-      // Password cloud mein saved nahi hota — lock screen pe check hoga
+      // Password sync
+      if (rec.password) localStorage.setItem(PW_KEY, rec.password);
+
       showCloudRestoreMsg('✅ ' + loans.length + ' loans load ho gaye! Ab password daalo.', 'green');
 
       setTimeout(function() {
@@ -2966,8 +2968,19 @@
         renderAll();
         updateBinBadge();
         updateCloudBtn(true);
+        startCloudPolling();
         showSyncStatus('☁️ Cloud Sync ON', 'var(--green)');
-        document.getElementById('lockScreen').classList.remove('hidden');
+        // Lock screen dikhao — password section bhi on karo
+        var ls = document.getElementById('lockScreen');
+        var pwSec = document.getElementById('lockPasswordSection');
+        var lol = document.getElementById('lockOwnerLabel');
+        var lh = document.getElementById('lockHint');
+        if (ls) ls.classList.remove('hidden');
+        if (pwSec) pwSec.style.display = 'block';
+        if (lol) lol.textContent = '🔐 Apna password daalo';
+        if (lh) lh.textContent = '👆 Wahi password daalo jo aapne pehle set kiya tha';
+        var li = document.getElementById('lockInput');
+        if (li) { li.value = ''; li.focus(); }
         showToast('✅ Cloud se ' + loans.length + ' loans restore ho gaye!');
       }, 1200);
     })
