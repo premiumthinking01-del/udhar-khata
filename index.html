@@ -441,6 +441,20 @@
         Google se Login Karo
       </button>
 
+      <!-- Divider -->
+      <div style="display:flex;align-items:center;gap:10px;margin:4px 0 12px">
+        <div style="flex:1;height:1px;background:var(--border)"></div>
+        <span style="font-size:0.72rem;color:var(--muted);white-space:nowrap">ya phir</span>
+        <div style="flex:1;height:1px;background:var(--border)"></div>
+      </div>
+
+      <!-- Backup File Restore Button -->
+      <input type="file" id="lockRestoreInput" accept=".json" style="display:none" onchange="restoreFromLockScreen(event)" />
+      <button onclick="document.getElementById('lockRestoreInput').click()"
+        style="display:flex;align-items:center;justify-content:center;gap:10px;width:100%;background:var(--surface);color:var(--text);border:1.5px solid var(--border);border-radius:12px;padding:13px 20px;font-family:inherit;font-size:0.92rem;font-weight:700;cursor:pointer;margin-bottom:14px">
+        💾 Backup File Se Restore Karo
+      </button>
+
       <div id="lockHint" class="lock-hint" style="color:var(--muted)">Ek hi click mein — saara data sync ho jaayega</div>
 
       <div id="loginLoader" style="display:none;text-align:center;padding:10px;color:var(--muted);font-size:0.85rem">
@@ -971,6 +985,8 @@
     .then(function() {
       showSyncStatus('☁️ Synced ✅', 'var(--green)');
       if (showMsg) showToast('☁️ Cloud sync ho gaya!');
+      // Shared data bhi update karo (agar share active hai)
+      updateSharedData();
     })
     .catch(function(err) {
       showSyncStatus('⚠️ Sync failed', 'var(--red)');
@@ -1068,6 +1084,49 @@
     showStep(3);
   }
   function startFresh() { showStep(2); }
+
+  function restoreFromLockScreen(event) {
+    try {
+      var file = event.target.files[0];
+      if (!file) return;
+      if (!file.name.endsWith('.json')) { showToast('❌ Sirf .json backup file chunein!'); return; }
+      var reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          var data = JSON.parse(e.target.result);
+          if (!data || typeof data !== 'object') { showToast('❌ Galat file format!'); return; }
+          if (!data.loans && !data.profile) { showToast('❌ Yeh Udhar Khata backup nahi hai!'); return; }
+          if (data.loans) {
+            var cleanLoans = safeArr(data.loans).map(sanitizeLoan).filter(Boolean);
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(cleanLoans));
+            loans = cleanLoans;
+          }
+          if (data.bin) {
+            var cleanBin = safeArr(data.bin).map(sanitizeLoan).filter(Boolean);
+            localStorage.setItem(BIN_KEY, JSON.stringify(cleanBin));
+            bin = cleanBin;
+          }
+          if (data.profile && typeof data.profile === 'object') saveProfile(data.profile);
+
+          // Lock screen hide karo, app dikhao
+          document.getElementById('lockScreen').classList.add('hidden');
+          updateOwnerDisplay(); renderAll(); updateBinBadge();
+
+          var hint = document.getElementById('lockHint');
+          showToast('✅ ' + loans.length + ' loans restore ho gaye! Ab Google se login karo taaki data cloud pe bhi save ho.');
+
+          // Agar Firebase mein logged in hai toh cloud pe bhi save karo
+          if (currentUser && dbRef) cloudSave(false);
+        } catch(err) {
+          showToast('❌ File corrupt lag rahi hai. Sahi backup chunein.');
+          console.error('Restore error:', err);
+        }
+      };
+      reader.onerror = function() { showToast('❌ File read nahi ho saki!'); };
+      reader.readAsText(file);
+    } catch(err) { showToast('❌ Restore fail hua!'); }
+    try { event.target.value = ''; } catch(e){}
+  }
 
   function restoreFromFile(event) {
     try {
@@ -2537,13 +2596,41 @@
   // ===== SHARE KHATA (Read-Only) =====
   function openShare() {
     if (!currentUser) { showToast('❌ Pehle login karo!'); return; }
-    // Firebase mein public read allow karo is user ke liye
-    var shareRef = fbDb.ref('shared/' + currentUser.uid);
-    shareRef.set({ active: true, ownerName: (getProfile() || {}).name || currentUser.displayName });
+    showToast('⏳ Share link bana raha hai...');
 
-    var shareUrl = window.location.origin + window.location.pathname + '?view=' + currentUser.uid;
-    document.getElementById('shareLinkInput').value = shareUrl;
-    document.getElementById('shareOverlay').classList.add('show');
+    // Loans ka data shared/ path pe copy karo (publicly readable)
+    var sharedRef = fbDb.ref('shared/' + currentUser.uid + '/khata');
+    var profile = getProfile();
+    sharedRef.set({
+      loans: loans,
+      bin: [],
+      profile: profile,
+      ownerName: profile ? profile.name : (currentUser.displayName || ''),
+      sharedAt: Date.now()
+    }).then(function() {
+      var shareUrl = window.location.origin + window.location.pathname + '?view=' + currentUser.uid;
+      document.getElementById('shareLinkInput').value = shareUrl;
+      document.getElementById('shareOverlay').classList.add('show');
+    }).catch(function(err) {
+      showToast('❌ Share link nahi bana — ' + err.message);
+    });
+  }
+
+  // Jab bhi cloudSave ho, shared data bhi update karo (agar share active hai)
+  function updateSharedData() {
+    if (!currentUser) return;
+    fbDb.ref('shared/' + currentUser.uid + '/khata').once('value', function(snap) {
+      if (snap.exists()) {
+        // Share active hai — update karo
+        var profile = getProfile();
+        fbDb.ref('shared/' + currentUser.uid + '/khata').update({
+          loans: loans,
+          bin: [],
+          profile: profile,
+          updatedAt: Date.now()
+        });
+      }
+    });
   }
 
   function copyShareLink() {
@@ -2573,28 +2660,31 @@
     // Lock screen hide karo — no login needed
     document.getElementById('lockScreen').classList.add('hidden');
 
-    // Firebase se owner ka data load karo
-    fbDb.ref('users/' + VIEW_UID + '/khata').once('value', function(snap) {
+    // shared/ path se data load karo (publicly readable)
+    fbDb.ref('shared/' + VIEW_UID + '/khata').once('value', function(snap) {
       var rec = snap.val();
       if (!rec) {
-        document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100vh;background:#0d1117;color:#e6edf3;font-size:1.1rem;text-align:center;padding:40px">❌ Khata nahi mila ya share expired ho gaya.</div>';
+        document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100vh;background:#0d1117;color:#e6edf3;font-size:1.1rem;text-align:center;padding:40px;flex-direction:column;gap:16px"><div style="font-size:3rem">❌</div><div>Khata nahi mila ya share link expired ho gaya.</div></div>';
         return;
       }
+
       loans = safeArr(rec.loans).map(sanitizeLoan).filter(Boolean);
       bin = [];
       if (rec.profile) saveProfile(rec.profile);
-      renderAll(); updateOwnerDisplay();
+      loadTheme();
+      renderAll();
+      updateOwnerDisplay();
 
-      // Logo ke neeche "View Only" badge add karo
-      var subtitle = document.getElementById('ownerInfoDisplay');
-      if (subtitle) {
+      // Logo ke neeche "VIEW ONLY" badge
+      var header = document.querySelector('header');
+      if (header) {
         var badge = document.createElement('div');
-        badge.style.cssText = 'display:inline-block;background:rgba(240,165,0,0.15);border:1.5px solid rgba(240,165,0,0.5);color:#f0a500;border-radius:20px;padding:3px 14px;font-size:0.72rem;font-weight:800;letter-spacing:0.5px;margin-top:4px';
-        badge.textContent = '👁️ VIEW ONLY';
-        subtitle.parentNode.insertBefore(badge, subtitle.nextSibling);
+        badge.style.cssText = 'text-align:center;margin-top:6px';
+        badge.innerHTML = '<span style="display:inline-block;background:rgba(240,165,0,0.15);border:1.5px solid rgba(240,165,0,0.5);color:#f0a500;border-radius:20px;padding:4px 16px;font-size:0.72rem;font-weight:800;letter-spacing:0.5px">👁️ VIEW ONLY — Sirf Dekhne Ke Liye</span>';
+        header.appendChild(badge);
       }
 
-      // Sirf yeh buttons dikhao: Theme, Summary, Top, Reminders — baki sab hide
+      // Sirf yeh buttons dikhao: Dark Mode, Summary, Top, Reminders
       var allowedOnclicks = ['toggleTheme', 'openSummary', 'openTopBorrowers', 'openNotifSettings'];
       document.querySelectorAll('.header-btns button, .header-btns span').forEach(function(el) {
         var onclick = el.getAttribute('onclick') || '';
@@ -2606,13 +2696,12 @@
       var formCard = document.querySelector('.form-card');
       if (formCard) formCard.style.display = 'none';
 
-      // syncStatus hide karo
-      var ss = document.getElementById('syncStatus');
-      if (ss) ss.style.display = 'none';
+      // Search bar filter options mein se kuch hide karo (add button agar ho)
+      var syncStatus = document.getElementById('syncStatus');
+      if (syncStatus) syncStatus.style.display = 'none';
 
-      // userInfoDisplay hide karo
-      var ui = document.getElementById('userInfoDisplay');
-      if (ui) ui.style.display = 'none';
+      var userInfo = document.getElementById('userInfoDisplay');
+      if (userInfo) userInfo.style.display = 'none';
     });
   }
 
