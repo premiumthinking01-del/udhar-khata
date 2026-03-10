@@ -456,7 +456,7 @@
           <div style="font-size:2rem;flex-shrink:0">☁️</div>
           <div>
             <div style="font-weight:800;color:var(--text);font-size:0.95rem">Cloud Se Restore Karo</div>
-            <div style="font-size:0.78rem;color:var(--muted);margin-top:3px;line-height:1.5">JSONBin pe data save hai —<br><b style="color:var(--green)">API Key + Bin ID</b> se seedha load karo</div>
+            <div style="font-size:0.78rem;color:var(--muted);margin-top:3px;line-height:1.5">Supabase pe data save hai —<br><b style="color:var(--green)">Project URL + Anon Key</b> se seedha load karo</div>
           </div>
           <div style="margin-left:auto;color:var(--green);font-size:1.3rem;font-weight:900">→</div>
         </button>
@@ -500,21 +500,19 @@
 
         <!-- Cloud sync question -->
         <div style="background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:14px;margin-bottom:16px">
-          <div style="font-size:0.82rem;font-weight:800;color:var(--text);margin-bottom:10px">☁️ Kya aapke paas JSONBin API Key hai?</div>
+          <div style="font-size:0.82rem;font-weight:800;color:var(--text);margin-bottom:10px">☁️ Kya aapke paas Supabase Account hai?</div>
           <div style="display:flex;gap:8px">
             <button id="cloudYesBtn" onclick="selectCloudOption(true)" style="flex:1;padding:10px;border-radius:10px;border:1.5px solid var(--border);background:var(--card);color:var(--muted);font-family:inherit;font-size:0.85rem;font-weight:700;cursor:pointer">✅ Haan hai</button>
             <button id="cloudNoBtn"  onclick="selectCloudOption(false)" style="flex:1;padding:10px;border-radius:10px;border:1.5px solid var(--border);background:var(--card);color:var(--muted);font-family:inherit;font-size:0.85rem;font-weight:700;cursor:pointer">❌ Nahi hai</button>
           </div>
-
           <!-- Cloud fields — shown only if YES -->
           <div id="setupCloudFields" style="display:none;margin-top:14px">
-            <div style="font-size:0.71rem;color:var(--muted);font-weight:700;text-transform:uppercase;margin-bottom:5px">API Key (X-Access-Key)</div>
-            <input type="password" id="setupApiKey" placeholder="$2a$10$xxxx..." style="width:100%;background:var(--card);border:1.5px solid var(--border);border-radius:9px;padding:10px 12px;color:var(--text);font-family:inherit;font-size:0.85rem;outline:none;margin-bottom:10px;box-sizing:border-box" />
-            <div style="font-size:0.71rem;color:var(--muted);font-weight:700;text-transform:uppercase;margin-bottom:5px">Bin ID</div>
-            <input type="text" id="setupBinId" placeholder="65f3a2b1e3a578..." style="width:100%;background:var(--card);border:1.5px solid var(--border);border-radius:9px;padding:10px 12px;color:var(--text);font-family:inherit;font-size:0.85rem;outline:none;box-sizing:border-box" />
+            <div style="font-size:0.71rem;color:var(--muted);font-weight:700;text-transform:uppercase;margin-bottom:5px">Supabase Project URL</div>
+            <input type="text" id="setupApiKey" placeholder="https://xxxx.supabase.co" style="width:100%;background:var(--card);border:1.5px solid var(--border);border-radius:9px;padding:10px 12px;color:var(--text);font-family:inherit;font-size:0.85rem;outline:none;margin-bottom:10px;box-sizing:border-box" />
+            <div style="font-size:0.71rem;color:var(--muted);font-weight:700;text-transform:uppercase;margin-bottom:5px">Anon Public Key</div>
+            <input type="password" id="setupBinId" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." style="width:100%;background:var(--card);border:1.5px solid var(--border);border-radius:9px;padding:10px 12px;color:var(--text);font-family:inherit;font-size:0.85rem;outline:none;box-sizing:border-box" />
             <div style="font-size:0.7rem;color:var(--green);margin-top:6px;font-weight:600">✅ Cloud sync automatically active ho jaayegi!</div>
           </div>
-
           <!-- No cloud info -->
           <div id="setupNoCloudInfo" style="display:none;margin-top:10px;font-size:0.75rem;color:var(--muted);line-height:1.6">
             💾 Theek hai! Manual backup system use hoga.<br>
@@ -556,16 +554,16 @@
         <div style="text-align:center;margin-bottom:20px">
           <div style="font-size:2rem">☁️</div>
           <div style="font-size:1.2rem;font-weight:900;color:var(--text);margin-top:6px">Cloud Se Restore</div>
-          <div style="color:var(--muted);font-size:0.82rem;margin-top:4px">JSONBin API Key aur Bin ID daalo</div>
+          <div style="color:var(--muted);font-size:0.82rem;margin-top:4px">Supabase Project URL aur Anon Key daalo</div>
         </div>
 
         <div id="cloudRestoreMsg" style="display:none;padding:10px 14px;border-radius:10px;font-size:0.82rem;font-weight:600;margin-bottom:12px"></div>
 
-        <div style="font-size:0.72rem;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px">API Key (X-Access-Key)</div>
-        <input type="password" id="cloudRestoreKey" placeholder="$2a$10$xxxx..." style="width:100%;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:11px 14px;color:var(--text);font-family:inherit;font-size:0.88rem;outline:none;margin-bottom:12px;box-sizing:border-box" />
+        <div style="font-size:0.72rem;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px">Supabase Project URL</div>
+        <input type="text" id="cloudRestoreKey" placeholder="https://xxxx.supabase.co" style="width:100%;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:11px 14px;color:var(--text);font-family:inherit;font-size:0.88rem;outline:none;margin-bottom:12px;box-sizing:border-box" />
 
-        <div style="font-size:0.72rem;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px">Bin ID</div>
-        <input type="text" id="cloudRestoreBin" placeholder="65f3a2b1e3a57843..." style="width:100%;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:11px 14px;color:var(--text);font-family:inherit;font-size:0.88rem;outline:none;margin-bottom:16px;box-sizing:border-box" />
+        <div style="font-size:0.72rem;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px">Anon Public Key</div>
+        <input type="password" id="cloudRestoreBin" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." style="width:100%;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:11px 14px;color:var(--text);font-family:inherit;font-size:0.88rem;outline:none;margin-bottom:16px;box-sizing:border-box" />
 
         <button onclick="doCloudRestore()" style="width:100%;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;border-radius:12px;padding:13px;font-family:inherit;font-size:0.95rem;font-weight:800;cursor:pointer">☁️ Data Load Karo</button>
 
@@ -606,7 +604,7 @@
         <span style="font-size:1.3rem">☁️</span>
         <div>
           <div>Doosre Device Pe Data Hai?</div>
-          <div style="font-size:0.72rem;font-weight:500;color:var(--muted);margin-top:2px">Cloud se restore karo — API Key + Bin ID se</div>
+          <div style="font-size:0.72rem;font-weight:500;color:var(--muted);margin-top:2px">Supabase URL + Anon Key se data wapas lao</div>
         </div>
       </button>
       <button onclick="goToWelcome('restore')" style="background:rgba(240,165,0,0.06);border:1px solid rgba(240,165,0,0.2);border-radius:12px;padding:11px 16px;color:var(--accent);font-family:inherit;font-size:0.85rem;font-weight:700;cursor:pointer;width:100%;text-align:left;display:flex;align-items:center;gap:10px">
@@ -978,52 +976,44 @@
       <div class="feat-title">☁️ Cloud Sync Setup</div>
       <button class="btn-feat-close" onclick="closeFeature('cloudSetupOverlay')">✕</button>
     </div>
-
     <div id="cloudSetupStatus" style="display:none;padding:12px 14px;border-radius:10px;font-size:0.85rem;font-weight:600;margin-bottom:14px"></div>
-
     <!-- Already configured -->
     <div id="cloudConfigured" style="display:none">
       <div style="background:rgba(63,185,80,0.1);border:1px solid rgba(63,185,80,0.3);border-radius:12px;padding:14px;margin-bottom:16px;font-size:0.85rem">
-        <div style="font-weight:800;color:var(--green);margin-bottom:4px">✅ Cloud Sync Active Hai!</div>
-        <div style="color:var(--muted)">Har entry ke baad automatically JSONBin pe save hota hai.</div>
-        <div style="color:var(--muted);margin-top:6px;font-size:0.75rem">Bin ID: <span id="configuredBinId" style="color:var(--accent);font-weight:700"></span></div>
+        <div style="font-weight:800;color:var(--green);margin-bottom:4px">✅ Supabase Sync Active Hai!</div>
+        <div style="color:var(--muted)">Har entry ke baad automatically Supabase pe save hota hai.</div>
+        <div style="color:var(--muted);margin-top:6px;font-size:0.75rem">Project: <span id="configuredBinId" style="color:var(--accent);font-weight:700"></span></div>
       </div>
       <button onclick="testCloudSync()" style="width:100%;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;border-radius:12px;padding:12px;font-family:inherit;font-size:0.92rem;font-weight:800;cursor:pointer;margin-bottom:8px">🔄 Test Connection</button>
       <button onclick="cloudSave(true)" style="width:100%;background:rgba(63,185,80,0.1);border:1px solid rgba(63,185,80,0.3);border-radius:12px;padding:11px;font-family:inherit;font-size:0.88rem;font-weight:700;color:var(--green);cursor:pointer;margin-bottom:8px">☁️ Abhi Sync Karo</button>
       <button onclick="removeCloudConfig()" style="width:100%;background:rgba(248,81,73,0.08);border:1px solid rgba(248,81,73,0.25);border-radius:12px;padding:11px;font-family:inherit;font-size:0.85rem;font-weight:700;color:var(--red);cursor:pointer">🗑️ Cloud Sync Hatao</button>
     </div>
-
     <!-- Setup form -->
     <div id="cloudSetupForm">
-      <div style="background:rgba(240,165,0,0.08);border:1px solid rgba(240,165,0,0.2);border-radius:12px;padding:14px;margin-bottom:16px;font-size:0.82rem;color:var(--muted);line-height:1.7">
-        📋 <b style="color:var(--text)">Kaise setup karein:</b><br>
-        1. <a href="https://jsonbin.io" target="_blank" style="color:var(--accent)">jsonbin.io</a> pe login karo<br>
-        2. Account icon → <b>API Keys</b> → key copy karo<br>
-        3. <b>Bins</b> → Create Bin → ID copy karo
+      <div style="background:rgba(63,185,80,0.06);border:1px solid rgba(63,185,80,0.2);border-radius:12px;padding:14px;margin-bottom:16px;font-size:0.82rem;color:var(--muted);line-height:1.7">
+        📋 <b style="color:var(--text)">Supabase setup:</b><br>
+        1. <a href="https://supabase.com/dashboard" target="_blank" style="color:var(--accent)">supabase.com</a> → apna project open karo<br>
+        2. Project Settings → API → URL copy karo<br>
+        3. Wahi pe <b>anon public</b> key copy karo
       </div>
-
-      <div style="font-size:0.72rem;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px">JSONBin API Key</div>
-      <input type="password" id="cloudApiKey" placeholder="$2a$10$xxxx..." style="width:100%;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:11px 14px;color:var(--text);font-family:inherit;font-size:0.9rem;outline:none;margin-bottom:12px" />
-
-      <div style="font-size:0.72rem;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px">Bin ID</div>
-      <input type="text" id="cloudBinId" placeholder="65f3a2b1e3a57843902847ab" style="width:100%;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:11px 14px;color:var(--text);font-family:inherit;font-size:0.9rem;outline:none;margin-bottom:16px" />
-
+      <div style="font-size:0.72rem;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px">Supabase Project URL</div>
+      <input type="text" id="cloudApiKey" placeholder="https://xxxx.supabase.co" style="width:100%;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:11px 14px;color:var(--text);font-family:inherit;font-size:0.9rem;outline:none;margin-bottom:12px;box-sizing:border-box" />
+      <div style="font-size:0.72rem;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px">Anon Public Key</div>
+      <input type="password" id="cloudBinId" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." style="width:100%;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:11px 14px;color:var(--text);font-family:inherit;font-size:0.9rem;outline:none;margin-bottom:16px;box-sizing:border-box" />
       <button onclick="saveCloudConfig()" style="width:100%;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;border-radius:12px;padding:13px;font-family:inherit;font-size:0.95rem;font-weight:800;cursor:pointer">✅ Save & Activate</button>
-
       <div style="display:flex;align-items:center;gap:10px;margin:14px 0">
         <div style="flex:1;height:1px;background:var(--border)"></div>
         <span style="font-size:0.72rem;color:var(--muted);white-space:nowrap">ya phir</span>
         <div style="flex:1;height:1px;background:var(--border)"></div>
       </div>
-
       <button onclick="skipCloudSetup()" style="width:100%;background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:12px;font-family:inherit;font-size:0.88rem;font-weight:700;color:var(--text);cursor:pointer;text-align:left;display:flex;align-items:center;gap:12px">
         <span style="font-size:1.4rem">💾</span>
         <div>
           <div style="font-weight:800">Bina Cloud Ke Continue Karo</div>
-          <div style="font-size:0.75rem;color:var(--muted);margin-top:2px">Manual backup system use hoga — Backup button se .json file download karo aur safe rakho</div>
+          <div style="font-size:0.75rem;color:var(--muted);margin-top:2px">Manual backup system use hoga</div>
         </div>
       </button>
-      <div style="font-size:0.72rem;color:var(--muted);text-align:center;margin-top:10px">🔒 Keys sirf aapke device ke localStorage mein save hongi — file mein nahi</div>
+      <div style="font-size:0.72rem;color:var(--muted);text-align:center;margin-top:10px">🔒 Keys sirf aapke device ke localStorage mein save hongi</div>
     </div>
   </div>
 </div>
@@ -1041,14 +1031,25 @@
   var THEME_KEY = 'udharKhata_theme';
   var PROFILE_KEY = 'udharKhata_profile';
 
-  // ===== JSONBIN CLOUD SYNC =====
-  var JBIN_KEY = localStorage.getItem('udharKhata_jkey') || '';
-  var JBIN_ID  = localStorage.getItem('udharKhata_jid') || '';
-  var JBIN_URL = 'https://api.jsonbin.io/v3/b/' + JBIN_ID;
+  // ===== SUPABASE CLOUD SYNC =====
+  var SB_URL  = localStorage.getItem('udharKhata_surl') || '';
+  var SB_KEY  = localStorage.getItem('udharKhata_skey') || '';
+  var SB_TABLE = 'khata';
+  var SB_ROW_ID = 1; // hamesha ek hi row use karenge
   var cloudSyncTimer = null;
   var isSaving  = false;
   var isLoading = false;
   var lastCloudSync = null;
+
+  function sbHeaders() {
+    return {
+      'Content-Type': 'application/json',
+      'apikey': SB_KEY,
+      'Authorization': 'Bearer ' + SB_KEY,
+      'Prefer': 'return=minimal'
+    };
+  }
+  function sbUrl() { return SB_URL + '/rest/v1/' + SB_TABLE; }
 
   function showSyncStatus(msg, color) {
     var el = document.getElementById('syncStatus');
@@ -1057,66 +1058,11 @@
     el.style.color = color || 'var(--muted)';
   }
 
-  // Auto cloud save — debounced (2 sec baad save hoga)
   function scheduleCloudSave() {
-    if (!JBIN_KEY || !JBIN_ID) return; // keys nahi hain toh sync skip
+    if (!SB_URL || !SB_KEY) return;
     if (cloudSyncTimer) clearTimeout(cloudSyncTimer);
     cloudSyncTimer = setTimeout(function() { cloudSave(false); }, 2000);
     showSyncStatus('☁️ Saving...', 'var(--accent)');
-  }
-
-  var isSaving  = false; // save flag alag
-  var isLoading = false; // load flag alag
-
-  function cloudSave(showMsg) {
-    if (!JBIN_KEY || !JBIN_ID) { if(showMsg) showToast('⚠️ Cloud sync setup nahi hai!'); return; }
-    if (isSaving) return;
-    isSaving = true;
-    showSyncStatus('☁️ Syncing...', 'var(--accent)');
-
-    // Cache bust — har baar fresh data aaye
-    fetch(JBIN_URL + '/latest?cb=' + Date.now(), {
-      headers: { 'X-Access-Key': JBIN_KEY, 'Cache-Control': 'no-cache' }
-    })
-    .then(function(r) { return r.ok ? r.json() : { record: null }; })
-    .then(function(data) {
-      var rec = data.record;
-      if (rec && rec.loans) {
-        var cloudLoans = safeArr(rec.loans).map(sanitizeLoan).filter(Boolean);
-        var cloudBin   = safeArr(rec.bin).map(sanitizeLoan).filter(Boolean);
-        loans = mergeById(cloudLoans, loans);
-        bin   = mergeById(cloudBin, bin);
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(loans));
-        localStorage.setItem(BIN_KEY, JSON.stringify(bin));
-        renderAll(); updateBinBadge();
-      }
-      var payload = {
-        loans: loans, bin: bin,
-        savedAt: new Date().toLocaleString('en-IN'),
-        savedAtMs: Date.now(),
-        profile: getProfile(),
-        password: localStorage.getItem(PW_KEY) || '1234'
-      };
-      return fetch(JBIN_URL, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json', 'X-Access-Key': JBIN_KEY, 'Cache-Control': 'no-cache' },
-        body: JSON.stringify(payload)
-      });
-    })
-    .then(function(r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
-    .then(function() {
-      isSaving = false;
-      lastCloudSync = Date.now();
-      showSyncStatus('✅ Synced ' + new Date().toLocaleTimeString('en-IN', {hour:'2-digit', minute:'2-digit'}), 'var(--green)');
-      if (showMsg) showToast('☁️ Cloud sync ho gaya!');
-      setTimeout(function(){ showSyncStatus('☁️ Cloud Sync ON', 'var(--green)'); }, 3000);
-    })
-    .catch(function(err) {
-      isSaving = false;
-      showSyncStatus('⚠️ Sync failed — retry ho raha hai', 'var(--red)');
-      setTimeout(function(){ if(JBIN_KEY && JBIN_ID) cloudSave(false); }, 10000);
-      console.error('Cloud save error:', err);
-    });
   }
 
   // ID-based smart merge — second array wins on same ID
@@ -1127,35 +1073,79 @@
     return Object.values(map).sort(function(a,b){ return (a.id||0)-(b.id||0); });
   }
 
+  function cloudSave(showMsg) {
+    if (!SB_URL || !SB_KEY) { if(showMsg) showToast('⚠️ Cloud sync setup nahi hai!'); return; }
+    if (isSaving) return;
+    isSaving = true;
+    showSyncStatus('☁️ Syncing...', 'var(--accent)');
+
+    // Pehle cloud ka data fetch karo, merge karo, phir save
+    fetch(sbUrl() + '?id=eq.' + SB_ROW_ID, {
+      headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY }
+    })
+    .then(function(r) { return r.ok ? r.json() : []; })
+    .then(function(rows) {
+      if (rows && rows.length > 0) {
+        try {
+          var rec = JSON.parse(rows[0].data);
+          var cloudLoans = safeArr(rec.loans).map(sanitizeLoan).filter(Boolean);
+          var cloudBin   = safeArr(rec.bin).map(sanitizeLoan).filter(Boolean);
+          loans = mergeById(cloudLoans, loans);
+          bin   = mergeById(cloudBin, bin);
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(loans));
+          localStorage.setItem(BIN_KEY, JSON.stringify(bin));
+          renderAll(); updateBinBadge();
+        } catch(e) {}
+      }
+      var payload = JSON.stringify({
+        loans: loans, bin: bin,
+        savedAt: new Date().toLocaleString('en-IN'),
+        savedAtMs: Date.now(),
+        profile: getProfile(),
+        password: localStorage.getItem(PW_KEY) || '1234'
+      });
+      // Upsert — row hai toh update, nahi hai toh insert
+      return fetch(sbUrl(), {
+        method: 'POST',
+        headers: Object.assign({}, sbHeaders(), { 'Prefer': 'resolution=merge-duplicates,return=minimal' }),
+        body: JSON.stringify({ id: SB_ROW_ID, data: payload })
+      });
+    })
+    .then(function(r) {
+      isSaving = false;
+      lastCloudSync = Date.now();
+      showSyncStatus('✅ Synced ' + new Date().toLocaleTimeString('en-IN', {hour:'2-digit', minute:'2-digit'}), 'var(--green)');
+      if (showMsg) showToast('☁️ Cloud sync ho gaya!');
+      setTimeout(function(){ showSyncStatus('☁️ Cloud Sync ON', 'var(--green)'); }, 3000);
+    })
+    .catch(function(err) {
+      isSaving = false;
+      showSyncStatus('⚠️ Sync failed', 'var(--red)');
+      setTimeout(function(){ if(SB_URL && SB_KEY) cloudSave(false); }, 10000);
+      console.error('Cloud save error:', err);
+    });
+  }
+
   function cloudLoad() {
-    if (!JBIN_KEY || !JBIN_ID) { showSyncStatus('☁️ Cloud Sync OFF', 'var(--muted)'); return; }
+    if (!SB_URL || !SB_KEY) { showSyncStatus('☁️ Cloud Sync OFF', 'var(--muted)'); return; }
     if (isLoading) return;
     isLoading = true;
-
-    // Cache bust — fresh data aaye hamesha
-    fetch(JBIN_URL + '/latest?cb=' + Date.now(), {
-      headers: { 'X-Access-Key': JBIN_KEY, 'Cache-Control': 'no-cache' }
+    fetch(sbUrl() + '?id=eq.' + SB_ROW_ID, {
+      headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY }
     })
     .then(function(r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
-    .then(function(data) {
+    .then(function(rows) {
       isLoading = false;
-      var rec = data.record;
-      if (!rec) { showSyncStatus('☁️ Cloud Sync ON', 'var(--green)'); return; }
-
+      if (!rows || rows.length === 0) { showSyncStatus('☁️ Cloud Sync ON', 'var(--green)'); return; }
+      var rec = JSON.parse(rows[0].data);
       var cloudLoans = safeArr(rec.loans).map(sanitizeLoan).filter(Boolean);
       var cloudBin   = safeArr(rec.bin).map(sanitizeLoan).filter(Boolean);
-
-      var mergedLoans = mergeById(loans, cloudLoans);
-      var mergedBin   = mergeById(bin, cloudBin);
-
-      loans = mergedLoans;
-      bin   = mergedBin;
+      loans = mergeById(loans, cloudLoans);
+      bin   = mergeById(bin, cloudBin);
       localStorage.setItem(STORAGE_KEY, JSON.stringify(loans));
       localStorage.setItem(BIN_KEY, JSON.stringify(bin));
-
       if (rec.profile && typeof rec.profile === 'object') saveProfile(rec.profile);
       if (rec.password) localStorage.setItem(PW_KEY, rec.password);
-
       renderAll(); updateBinBadge(); updateOwnerDisplay();
       showSyncStatus('☁️ Cloud Sync ON', 'var(--green)');
       lastCloudSync = Date.now();
@@ -1169,7 +1159,7 @@
 
   // Auto-poll every 15 sec
   function startCloudPolling() {
-    if (!JBIN_KEY || !JBIN_ID) return;
+    if (!SB_URL || !SB_KEY) return;
     setInterval(function() {
       var locked = !document.getElementById('lockScreen').classList.contains('hidden');
       if (!locked && !isLoading && !isSaving) cloudLoad();
@@ -1279,18 +1269,17 @@
 
     // Cloud setup — if user chose YES and filled keys
     if (setupCloudChoice === true) {
-      var apiKey = (document.getElementById('setupApiKey').value || '').trim();
-      var binId  = (document.getElementById('setupBinId').value || '').trim();
-      if (apiKey && binId) {
-        localStorage.setItem('udharKhata_jkey', apiKey);
-        localStorage.setItem('udharKhata_jid', binId);
-        JBIN_KEY = apiKey; JBIN_ID = binId;
-        JBIN_URL = 'https://api.jsonbin.io/v3/b/' + binId;
+      var sbUrl2 = (document.getElementById('setupApiKey').value || '').trim().replace(/\/+$/, '');
+      var sbKey2 = (document.getElementById('setupBinId').value || '').trim();
+      if (sbUrl2 && sbKey2) {
+        localStorage.setItem('udharKhata_surl', sbUrl2);
+        localStorage.setItem('udharKhata_skey', sbKey2);
+        SB_URL = sbUrl2; SB_KEY = sbKey2;
         updateCloudBtn(true);
         showSyncStatus('☁️ Cloud Sync ON', 'var(--green)');
+        setTimeout(function(){ cloudSave(false); startCloudPolling(); }, 1500);
       }
     } else if (setupCloudChoice === false) {
-      // No cloud — hide sync button from header
       var syncBtn = document.getElementById('cloudSetupBtn');
       if (syncBtn) { syncBtn.style.display = 'none'; }
       showSyncStatus('💾 Manual Backup Mode', 'var(--muted)');
@@ -2320,9 +2309,9 @@
     try { localStorage.removeItem(BIN_KEY); } catch(e){}
     try { localStorage.removeItem(PW_KEY); } catch(e){}
     try { localStorage.removeItem(PROFILE_KEY); } catch(e){}
-    try { localStorage.removeItem('udharKhata_jkey'); } catch(e){}
-    try { localStorage.removeItem('udharKhata_jid'); } catch(e){}
-    JBIN_KEY = ''; JBIN_ID = ''; JBIN_URL = '';
+    try { localStorage.removeItem('udharKhata_surl'); } catch(e){}
+    try { localStorage.removeItem('udharKhata_skey'); } catch(e){}
+    SB_URL = ''; SB_KEY = '';
     loans = []; bin = [];
     closeLogout();
     var ws = document.getElementById('welcomeScreen');
@@ -2808,61 +2797,46 @@
 
   // ===== CLOUD SETUP FUNCTIONS =====
   function openCloudSetup() {
-    var configured = JBIN_KEY && JBIN_ID;
+    var configured = SB_URL && SB_KEY;
     document.getElementById('cloudConfigured').style.display = configured ? 'block' : 'none';
     document.getElementById('cloudSetupForm').style.display = configured ? 'none' : 'block';
     document.getElementById('cloudSetupStatus').style.display = 'none';
     if (configured) {
-      document.getElementById('configuredBinId').textContent = JBIN_ID;
+      document.getElementById('configuredBinId').textContent = SB_URL.replace('https://','').split('.')[0];
     }
     document.getElementById('cloudSetupOverlay').classList.add('show');
   }
 
   function saveCloudConfig() {
-    var key = (document.getElementById('cloudApiKey').value || '').trim();
-    var id  = (document.getElementById('cloudBinId').value || '').trim();
-    if (!key) { showCloudMsg('❌ API Key daalo!', 'var(--red)'); return; }
-    if (!id)  { showCloudMsg('❌ Bin ID daalo!', 'var(--red)'); return; }
-
+    var url = (document.getElementById('cloudApiKey').value || '').trim().replace(/\/+$/, '');
+    var key = (document.getElementById('cloudBinId').value || '').trim();
+    if (!url) { showCloudMsg('❌ Project URL daalo!', 'var(--red)'); return; }
+    if (!key) { showCloudMsg('❌ Anon Key daalo!', 'var(--red)'); return; }
     showCloudMsg('🔄 Connecting...', 'var(--accent)');
 
-    // Test by writing a small ping to the bin
-    fetch('https://api.jsonbin.io/v3/b/' + id, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Access-Key': key,
-        'X-Bin-Private': 'true'
-      },
-      body: JSON.stringify({
-        loans: loans,
-        bin: bin,
-        profile: getProfile(),
-        savedAt: new Date().toLocaleString('en-IN'),
-        ping: true
-      })
+    // Test connection
+    fetch(url + '/rest/v1/' + SB_TABLE + '?id=eq.1', {
+      headers: { 'apikey': key, 'Authorization': 'Bearer ' + key }
     })
     .then(function(r) {
-      if (r.status === 401) throw new Error('401: API Key galat hai!');
-      if (r.status === 404) throw new Error('404: Bin ID nahi mila!');
-      if (r.status === 403) throw new Error('403: Access denied!');
-      if (!r.ok) throw new Error('HTTP ' + r.status);
+      if (r.status === 401) throw new Error('Anon Key galat hai!');
+      if (!r.ok) throw new Error('HTTP ' + r.status + ' — URL check karo');
       return r.json();
     })
     .then(function() {
-      localStorage.setItem('udharKhata_jkey', key);
-      localStorage.setItem('udharKhata_jid', id);
-      JBIN_KEY = key;
-      JBIN_ID  = id;
-      JBIN_URL = 'https://api.jsonbin.io/v3/b/' + id;
+      localStorage.setItem('udharKhata_surl', url);
+      localStorage.setItem('udharKhata_skey', key);
+      SB_URL = url; SB_KEY = key;
+      // Initial save
+      cloudSave(false);
       updateCloudBtn(true);
       showSyncStatus('☁️ Cloud Sync ON', 'var(--green)');
-      showCloudMsg('✅ Connected! Data bhi sync ho gaya!', 'var(--green)');
+      showCloudMsg('✅ Connected! Supabase se sync ho gaya!', 'var(--green)');
       startCloudPolling();
       setTimeout(function() {
         document.getElementById('cloudConfigured').style.display = 'block';
         document.getElementById('cloudSetupForm').style.display = 'none';
-        document.getElementById('configuredBinId').textContent = id;
+        document.getElementById('configuredBinId').textContent = url.replace('https://','').split('.')[0];
       }, 1000);
     })
     .catch(function(err) {
@@ -2872,10 +2846,12 @@
 
   function testCloudSync() {
     showCloudMsg('🔄 Testing...', 'var(--accent)');
-    fetch(JBIN_URL + '/latest', { headers: { 'X-Access-Key': JBIN_KEY } })
+    fetch(sbUrl() + '?id=eq.' + SB_ROW_ID, {
+      headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY }
+    })
     .then(function(r) { if(!r.ok) throw new Error(); return r.json(); })
-    .then(function(d) {
-      var savedAt = d.record && d.record.savedAt ? d.record.savedAt : 'Unknown';
+    .then(function(rows) {
+      var savedAt = rows && rows[0] ? JSON.parse(rows[0].data).savedAt : 'Unknown';
       showCloudMsg('✅ Connection OK! Last sync: ' + savedAt, 'var(--green)');
     })
     .catch(function() { showCloudMsg('❌ Connection fail! Keys check karo.', 'var(--red)'); });
@@ -2883,9 +2859,9 @@
 
   function removeCloudConfig() {
     if (!confirm('⚠️ Cloud sync band ho jaayegi. Local data safe rahega. Pakka?')) return;
-    localStorage.removeItem('udharKhata_jkey');
-    localStorage.removeItem('udharKhata_jid');
-    JBIN_KEY = ''; JBIN_ID = ''; JBIN_URL = '';
+    localStorage.removeItem('udharKhata_surl');
+    localStorage.removeItem('udharKhata_skey');
+    SB_URL = ''; SB_KEY = '';
     updateCloudBtn(false);
     showSyncStatus('☁️ Cloud Sync OFF', 'var(--muted)');
     closeFeature('cloudSetupOverlay');
@@ -2902,59 +2878,44 @@
   }
 
   function doCloudRestore() {
-    var key = (document.getElementById('cloudRestoreKey').value || '').trim();
-    var id  = (document.getElementById('cloudRestoreBin').value || '').trim();
-    if (!key) { showCloudRestoreMsg('❌ API Key daalo!', 'red'); return; }
-    if (!id)  { showCloudRestoreMsg('❌ Bin ID daalo!', 'red'); return; }
+    var url = (document.getElementById('cloudRestoreKey').value || '').trim().replace(/\/+$/, '');
+    var key = (document.getElementById('cloudRestoreBin').value || '').trim();
+    if (!url) { showCloudRestoreMsg('❌ Supabase URL daalo!', 'red'); return; }
+    if (!key) { showCloudRestoreMsg('❌ Anon Key daalo!', 'red'); return; }
 
     showCloudRestoreMsg('☁️ Data load ho raha hai...', 'yellow');
 
-    fetch('https://api.jsonbin.io/v3/b/' + id + '/latest', {
-      headers: { 'X-Access-Key': key }
+    fetch(url + '/rest/v1/' + SB_TABLE + '?id=eq.' + SB_ROW_ID, {
+      headers: { 'apikey': key, 'Authorization': 'Bearer ' + key }
     })
     .then(function(r) {
       if (r.status === 401) throw new Error('401');
-      if (r.status === 404) throw new Error('404');
       if (!r.ok) throw new Error('HTTP ' + r.status);
       return r.json();
     })
-    .then(function(data) {
-      var rec = data.record;
-      if (!rec) throw new Error('empty');
+    .then(function(rows) {
+      if (!rows || rows.length === 0) throw new Error('empty');
+      var rec = JSON.parse(rows[0].data);
 
-      // Save cloud keys for future auto-sync
-      localStorage.setItem('udharKhata_jkey', key);
-      localStorage.setItem('udharKhata_jid', id);
-      JBIN_KEY = key; JBIN_ID = id;
-      JBIN_URL = 'https://api.jsonbin.io/v3/b/' + id;
+      localStorage.setItem('udharKhata_surl', url);
+      localStorage.setItem('udharKhata_skey', key);
+      SB_URL = url; SB_KEY = key;
 
-      // Restore data
       var cloudLoans = safeArr(rec.loans).map(sanitizeLoan).filter(Boolean);
       var cloudBin   = safeArr(rec.bin).map(sanitizeLoan).filter(Boolean);
-      loans = cloudLoans;
-      bin   = cloudBin;
+      loans = cloudLoans; bin = cloudBin;
       localStorage.setItem(STORAGE_KEY, JSON.stringify(loans));
       localStorage.setItem(BIN_KEY, JSON.stringify(bin));
-
-      // Restore profile
-      if (rec.profile && typeof rec.profile === 'object') {
-        saveProfile(rec.profile);
-      }
-
-      // Password sync
+      if (rec.profile && typeof rec.profile === 'object') saveProfile(rec.profile);
       if (rec.password) localStorage.setItem(PW_KEY, rec.password);
 
       showCloudRestoreMsg('✅ ' + loans.length + ' loans load ho gaye! Ab password daalo.', 'green');
 
       setTimeout(function() {
         document.getElementById('welcomeScreen').classList.add('hidden');
-        updateOwnerDisplay();
-        renderAll();
-        updateBinBadge();
-        updateCloudBtn(true);
-        startCloudPolling();
+        updateOwnerDisplay(); renderAll(); updateBinBadge();
+        updateCloudBtn(true); startCloudPolling();
         showSyncStatus('☁️ Cloud Sync ON', 'var(--green)');
-        // Lock screen dikhao — password section bhi on karo
         var ls = document.getElementById('lockScreen');
         var pwSec = document.getElementById('lockPasswordSection');
         var lol = document.getElementById('lockOwnerLabel');
@@ -2962,15 +2923,15 @@
         if (ls) ls.classList.remove('hidden');
         if (pwSec) pwSec.style.display = 'block';
         if (lol) lol.textContent = '🔐 Apna password daalo';
-        if (lh) lh.textContent = '👆 Wahi password daalo jo aapne pehle set kiya tha';
+        if (lh) lh.textContent = '👆 Wahi password daalo jo pehle set kiya tha';
         var li = document.getElementById('lockInput');
         if (li) { li.value = ''; li.focus(); }
         showToast('✅ Cloud se ' + loans.length + ' loans restore ho gaye!');
       }, 1200);
     })
     .catch(function(err) {
-      if (err.message === '401') showCloudRestoreMsg('❌ API Key galat hai!', 'red');
-      else if (err.message === '404') showCloudRestoreMsg('❌ Bin ID nahi mila!', 'red');
+      if (err.message === '401') showCloudRestoreMsg('❌ Anon Key galat hai!', 'red');
+      else if (err.message === 'empty') showCloudRestoreMsg('❌ Koi data nahi mila — URL/Key check karo.', 'red');
       else showCloudRestoreMsg('❌ Data load nahi ho saka. Keys check karo.', 'red');
     });
   }
@@ -3013,9 +2974,9 @@
   updateOwnerDisplay();
   applyCustomization();
   var langBtnEl = document.getElementById('langBtn');
-  if (langBtnEl) langBtnEl.style.display = 'none'; // language button permanently hidden
+  if (langBtnEl) langBtnEl.style.display = 'none';
   document.getElementById('startDate').valueAsDate = new Date();
-  setTimeout(function(){ cloudLoad(); updateCloudBtn(!!(JBIN_KEY && JBIN_ID)); if(JBIN_KEY && JBIN_ID) startCloudPolling(); }, 1000);
+  setTimeout(function(){ cloudLoad(); updateCloudBtn(!!(SB_URL && SB_KEY)); if(SB_URL && SB_KEY) startCloudPolling(); }, 1000);
 
   (function() {
     var profile = getProfile();
