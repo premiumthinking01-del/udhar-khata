@@ -1868,6 +1868,17 @@
       var list = document.getElementById('loansList');
       if (list) list.innerHTML = '<div class="empty-state"><div class="icon">⚠️</div><p>Display mein kuch gadbad hui. Page refresh karo.</p></div>';
     }
+    // View mode mein loan card ke edit/pay/delete buttons hide karo
+    if (isViewMode) {
+      setTimeout(function() {
+        var hideOnclicks = ['markPaid', 'askDelete', 'editNote', 'renewLoan', 'moveTobin', 'exportLoan', 'addEmi'];
+        document.querySelectorAll('#loansList button').forEach(function(btn) {
+          var oc = btn.getAttribute('onclick') || '';
+          var shouldHide = hideOnclicks.some(function(fn) { return oc.indexOf(fn) !== -1; });
+          if (shouldHide) btn.style.display = 'none';
+        });
+      }, 50);
+    }
   }
   function copyEmiReminder(loanId) {
     var loan = loans.find(function(l){ return l.id===loanId; });
@@ -2559,27 +2570,49 @@
   var isViewMode = !!VIEW_UID;
 
   if (isViewMode) {
-    // Read-only mode — login bypass, seedha public data load karo
-    document.addEventListener('DOMContentLoaded', function() {});
-    fbAuth.onAuthStateChanged(function() {}); // override default listener nahi karna
+    // Lock screen hide karo — no login needed
     document.getElementById('lockScreen').classList.add('hidden');
 
+    // Firebase se owner ka data load karo
     fbDb.ref('users/' + VIEW_UID + '/khata').once('value', function(snap) {
       var rec = snap.val();
-      if (!rec) { document.body.innerHTML = '<div style="text-align:center;padding:60px;color:#fff;font-size:1.1rem">❌ Khata nahi mila ya share expired ho gaya.</div>'; return; }
+      if (!rec) {
+        document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100vh;background:#0d1117;color:#e6edf3;font-size:1.1rem;text-align:center;padding:40px">❌ Khata nahi mila ya share expired ho gaya.</div>';
+        return;
+      }
       loans = safeArr(rec.loans).map(sanitizeLoan).filter(Boolean);
       bin = [];
       if (rec.profile) saveProfile(rec.profile);
       renderAll(); updateOwnerDisplay();
 
-      // View mode banner
-      var banner = document.createElement('div');
-      banner.style.cssText = 'position:fixed;top:0;left:0;right:0;background:#f0a500;color:#000;text-align:center;padding:8px;font-weight:800;font-size:0.85rem;z-index:9998';
-      banner.textContent = '👁️ Read-Only Mode — Sirf Dekhne Ke Liye';
-      document.body.prepend(banner);
+      // Logo ke neeche "View Only" badge add karo
+      var subtitle = document.getElementById('ownerInfoDisplay');
+      if (subtitle) {
+        var badge = document.createElement('div');
+        badge.style.cssText = 'display:inline-block;background:rgba(240,165,0,0.15);border:1.5px solid rgba(240,165,0,0.5);color:#f0a500;border-radius:20px;padding:3px 14px;font-size:0.72rem;font-weight:800;letter-spacing:0.5px;margin-top:4px';
+        badge.textContent = '👁️ VIEW ONLY';
+        subtitle.parentNode.insertBefore(badge, subtitle.nextSibling);
+      }
 
-      // Edit buttons disable karo
-      document.querySelectorAll('button[onclick*="addLoan"], button[onclick*="openForm"]').forEach(function(b){ b.style.display='none'; });
+      // Sirf yeh buttons dikhao: Theme, Summary, Top, Reminders — baki sab hide
+      var allowedOnclicks = ['toggleTheme', 'openSummary', 'openTopBorrowers', 'openNotifSettings'];
+      document.querySelectorAll('.header-btns button, .header-btns span').forEach(function(el) {
+        var onclick = el.getAttribute('onclick') || '';
+        var allowed = allowedOnclicks.some(function(fn) { return onclick.indexOf(fn) !== -1; });
+        if (!allowed) el.style.display = 'none';
+      });
+
+      // Form card (Naya Loan Add) hide karo
+      var formCard = document.querySelector('.form-card');
+      if (formCard) formCard.style.display = 'none';
+
+      // syncStatus hide karo
+      var ss = document.getElementById('syncStatus');
+      if (ss) ss.style.display = 'none';
+
+      // userInfoDisplay hide karo
+      var ui = document.getElementById('userInfoDisplay');
+      if (ui) ui.style.display = 'none';
     });
   }
 
