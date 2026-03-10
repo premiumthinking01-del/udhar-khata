@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="hi" data-theme="dark">
 <head>
@@ -10,6 +11,9 @@
 <meta name="description" content="Apna udhar ka hisaab rakho — EMI tracker, loan manager">
 <link rel="manifest" href="manifest.json">
 <title>Udhar Khata</title>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
 <style>
   :root {
     --bg: #0d1117; --surface: #161b22; --card: #1c2333; --border: #30363d;
@@ -419,201 +423,30 @@
      WELCOME DIALOG — Pehli baar ya data clear hone par
      ══════════════════════════════════════════ -->
 <div id="welcomeScreen" class="fullscreen-overlay hidden">
-  <div class="setup-box" style="overflow:hidden;padding:0">
-
-    <!-- Single sliding container -->
-    <div id="wSlider" style="display:flex;transition:transform 0.35s cubic-bezier(0.4,0,0.2,1);width:400%">
-
-      <!-- ── PANEL 1: Choose ── -->
-      <div style="width:25%;flex-shrink:0;padding:28px 24px">
-        <div style="text-align:center;margin-bottom:4px">
-          <div style="font-size:3rem;line-height:1">💰</div>
-          <div style="font-size:1.5rem;font-weight:900;margin:10px 0 4px;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">Udhar Khata</div>
-          <div style="color:var(--muted);font-size:0.84rem;line-height:1.7">Swagat hai! 🙏<br>Pehli baar hai ya pehle se use kar rahe the?</div>
-        </div>
-
-        <div style="height:1px;background:var(--border);margin:20px 0"></div>
-
-        <button onclick="goToSetup()" style="display:flex;align-items:center;gap:14px;width:100%;background:linear-gradient(135deg,rgba(240,165,0,0.12),rgba(255,107,53,0.08));border:1.5px solid rgba(240,165,0,0.4);border-radius:14px;padding:16px;cursor:pointer;font-family:inherit;margin-bottom:12px;text-align:left">
-          <div style="font-size:2rem;flex-shrink:0">🆕</div>
-          <div>
-            <div style="font-weight:800;color:var(--text);font-size:0.95rem">Naya Shuru Karo</div>
-            <div style="font-size:0.78rem;color:var(--muted);margin-top:3px;line-height:1.5">Pehli baar use kar rahe hain —<br>naam, shehar aur password set karein</div>
-          </div>
-          <div style="margin-left:auto;color:var(--accent);font-size:1.3rem;font-weight:900">→</div>
-        </button>
-
-        <button onclick="goToRestore()" style="display:flex;align-items:center;gap:14px;width:100%;background:var(--surface);border:1.5px solid var(--border);border-radius:14px;padding:16px;cursor:pointer;font-family:inherit;margin-bottom:12px;text-align:left">
-          <div style="font-size:2rem;flex-shrink:0">♻️</div>
-          <div>
-            <div style="font-weight:800;color:var(--text);font-size:0.95rem">Backup Se Restore Karo</div>
-            <div style="font-size:0.78rem;color:var(--muted);margin-top:3px;line-height:1.5">Pehle se use kar rahe the, data clear hua —<br>apni <b style="color:var(--accent)">.json backup file</b> chunein</div>
-          </div>
-          <div style="margin-left:auto;color:var(--muted);font-size:1.3rem;font-weight:900">→</div>
-        </button>
-
-        <button onclick="goToCloudRestore()" style="display:flex;align-items:center;gap:14px;width:100%;background:var(--surface);border:1.5px solid rgba(63,185,80,0.35);border-radius:14px;padding:16px;cursor:pointer;font-family:inherit;text-align:left">
-          <div style="font-size:2rem;flex-shrink:0">☁️</div>
-          <div>
-            <div style="font-weight:800;color:var(--text);font-size:0.95rem">Cloud Se Restore Karo</div>
-            <div style="font-size:0.78rem;color:var(--muted);margin-top:3px;line-height:1.5">Supabase pe data save hai —<br><b style="color:var(--green)">Project URL + Anon Key</b> se seedha load karo</div>
-          </div>
-          <div style="margin-left:auto;color:var(--green);font-size:1.3rem;font-weight:900">→</div>
-        </button>
-
-        <div style="margin-top:18px;text-align:center;font-size:0.71rem;color:var(--muted);line-height:1.7">
-          🔒 Data sirf <b>aapke device</b> par · Koi server nahi · 100% private
-        </div>
-      </div>
-
-      <!-- ── PANEL 2: Setup Form ── -->
-      <div style="width:25%;flex-shrink:0;padding:24px 24px 28px">
-        <button onclick="backToStep1()" style="background:none;border:none;color:var(--muted);font-size:0.82rem;cursor:pointer;font-family:inherit;padding:0;margin-bottom:18px;display:flex;align-items:center;gap:5px">← Wapas</button>
-
-        <div style="text-align:center;margin-bottom:20px">
-          <div style="font-size:2rem">📝</div>
-          <div style="font-size:1.2rem;font-weight:900;color:var(--text);margin-top:6px">Apni Jankari Bharo</div>
-          <div style="color:var(--muted);font-size:0.82rem;margin-top:4px">Sirf aapke device pe save hogi 🔒</div>
-        </div>
-
-        <label class="setup-label">👤 Aapka Naam / Dukaan ka Naam</label>
-        <input class="setup-input" id="setupOwnerName" type="text" placeholder="Jaise: Ramesh / Sharma Store" autocapitalize="words" style="margin-bottom:14px" />
-
-        <label class="setup-label">📍 Shehar / Location</label>
-        <input class="setup-input" id="setupCity" type="text" placeholder="Type karein ya neeche se chunein..." autocapitalize="words" oninput="clearCityChips()" style="margin-bottom:10px" />
-        <div style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:16px">
-          <button class="city-chip" onclick="selectCity('Jaipur')">Jaipur</button>
-          <button class="city-chip" onclick="selectCity('Delhi')">Delhi</button>
-          <button class="city-chip" onclick="selectCity('Mumbai')">Mumbai</button>
-          <button class="city-chip" onclick="selectCity('Surat')">Surat</button>
-          <button class="city-chip" onclick="selectCity('Ahmedabad')">Ahmedabad</button>
-          <button class="city-chip" onclick="selectCity('Lucknow')">Lucknow</button>
-          <button class="city-chip" onclick="selectCity('Indore')">Indore</button>
-          <button class="city-chip" onclick="selectCity('Patna')">Patna</button>
-          <button class="city-chip" onclick="selectCity('Kanpur')">Kanpur</button>
-          <button class="city-chip" onclick="selectCity('Bhopal')">Bhopal</button>
-        </div>
-
-        <label class="setup-label">🔑 Password Set Karein</label>
-        <input class="setup-input" id="setupPassword" type="password" placeholder="4-10 digit  (khaali = default 1234)" inputmode="numeric" maxlength="10" style="margin-bottom:6px" />
-        <div style="font-size:0.71rem;color:var(--muted);margin-bottom:20px">💡 Baad mein Settings se badal sakte hain</div>
-
-        <!-- Cloud sync question -->
-        <div style="background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:14px;margin-bottom:16px">
-          <div style="font-size:0.82rem;font-weight:800;color:var(--text);margin-bottom:10px">☁️ Kya aapke paas Supabase Account hai?</div>
-          <div style="display:flex;gap:8px">
-            <button id="cloudYesBtn" onclick="selectCloudOption(true)" style="flex:1;padding:10px;border-radius:10px;border:1.5px solid var(--border);background:var(--card);color:var(--muted);font-family:inherit;font-size:0.85rem;font-weight:700;cursor:pointer">✅ Haan hai</button>
-            <button id="cloudNoBtn"  onclick="selectCloudOption(false)" style="flex:1;padding:10px;border-radius:10px;border:1.5px solid var(--border);background:var(--card);color:var(--muted);font-family:inherit;font-size:0.85rem;font-weight:700;cursor:pointer">❌ Nahi hai</button>
-          </div>
-          <!-- Cloud fields — shown only if YES -->
-          <div id="setupCloudFields" style="display:none;margin-top:14px">
-            <div style="font-size:0.71rem;color:var(--muted);font-weight:700;text-transform:uppercase;margin-bottom:5px">Supabase Project URL</div>
-            <input type="text" id="setupApiKey" placeholder="https://xxxx.supabase.co" style="width:100%;background:var(--card);border:1.5px solid var(--border);border-radius:9px;padding:10px 12px;color:var(--text);font-family:inherit;font-size:0.85rem;outline:none;margin-bottom:10px;box-sizing:border-box" />
-            <div style="font-size:0.71rem;color:var(--muted);font-weight:700;text-transform:uppercase;margin-bottom:5px">Anon Public Key</div>
-            <input type="password" id="setupBinId" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." style="width:100%;background:var(--card);border:1.5px solid var(--border);border-radius:9px;padding:10px 12px;color:var(--text);font-family:inherit;font-size:0.85rem;outline:none;box-sizing:border-box" />
-            <div style="font-size:0.7rem;color:var(--green);margin-top:6px;font-weight:600">✅ Cloud sync automatically active ho jaayegi!</div>
-          </div>
-          <!-- No cloud info -->
-          <div id="setupNoCloudInfo" style="display:none;margin-top:10px;font-size:0.75rem;color:var(--muted);line-height:1.6">
-            💾 Theek hai! Manual backup system use hoga.<br>
-            <b style="color:var(--accent)">Backup</b> button se data save karte raho.
-          </div>
-        </div>
-
-        <button class="btn-setup-primary" onclick="completeSetup()">🚀 Shuru Karein!</button>
-      </div>
-
-      <!-- ── PANEL 3: Restore ── -->
-      <div style="width:25%;flex-shrink:0;padding:24px 24px 28px">
-        <button onclick="backToStep1()" style="background:none;border:none;color:var(--muted);font-size:0.82rem;cursor:pointer;font-family:inherit;padding:0;margin-bottom:18px;display:flex;align-items:center;gap:5px">← Wapas</button>
-
-        <div style="text-align:center;margin-bottom:22px">
-          <div style="font-size:2rem">♻️</div>
-          <div style="font-size:1.2rem;font-weight:900;color:var(--text);margin-top:6px">Backup Se Restore</div>
-          <div style="color:var(--muted);font-size:0.82rem;margin-top:4px">Apni pehle download ki hui backup file chunein</div>
-        </div>
-
-        <button onclick="document.getElementById('restoreFileInput').click()" style="display:flex;align-items:center;gap:14px;width:100%;background:linear-gradient(135deg,rgba(240,165,0,0.1),rgba(255,107,53,0.06));border:2px dashed rgba(240,165,0,0.45);border-radius:14px;padding:20px 16px;cursor:pointer;font-family:inherit;text-align:left;margin-bottom:16px">
-          <div style="font-size:2.5rem;flex-shrink:0">📂</div>
-          <div>
-            <div style="font-weight:800;color:var(--accent);font-size:0.95rem">File Choose Karein</div>
-            <div style="font-size:0.78rem;color:var(--muted);margin-top:4px;line-height:1.6"><b>_Backup_.json</b> file dhundho —<br>Downloads, WhatsApp ya Drive mein hogi</div>
-          </div>
-        </button>
-        <input type="file" id="restoreFileInput" accept=".json" style="display:none" onchange="restoreFromFile(event)" />
-
-        <div style="background:rgba(63,185,80,0.08);border:1px solid rgba(63,185,80,0.25);border-radius:10px;padding:12px 14px;font-size:0.78rem;color:var(--muted);line-height:1.6">
-          ✅ File choose hote hi saara data automatically wapas aa jaayega — loans, EMI schedule, sab kuch!
-        </div>
-      </div>
-
-      <!-- ── PANEL 4: Cloud Restore ── -->
-      <div style="width:25%;flex-shrink:0;padding:24px 24px 28px">
-        <button onclick="backToStep1()" style="background:none;border:none;color:var(--muted);font-size:0.82rem;cursor:pointer;font-family:inherit;padding:0;margin-bottom:18px;display:flex;align-items:center;gap:5px">← Wapas</button>
-
-        <div style="text-align:center;margin-bottom:20px">
-          <div style="font-size:2rem">☁️</div>
-          <div style="font-size:1.2rem;font-weight:900;color:var(--text);margin-top:6px">Cloud Se Restore</div>
-          <div style="color:var(--muted);font-size:0.82rem;margin-top:4px">Supabase Project URL aur Anon Key daalo</div>
-        </div>
-
-        <div id="cloudRestoreMsg" style="display:none;padding:10px 14px;border-radius:10px;font-size:0.82rem;font-weight:600;margin-bottom:12px"></div>
-
-        <div style="font-size:0.72rem;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px">Supabase Project URL</div>
-        <input type="text" id="cloudRestoreKey" placeholder="https://xxxx.supabase.co" style="width:100%;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:11px 14px;color:var(--text);font-family:inherit;font-size:0.88rem;outline:none;margin-bottom:12px;box-sizing:border-box" />
-
-        <div style="font-size:0.72rem;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px">Anon Public Key</div>
-        <input type="password" id="cloudRestoreBin" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." style="width:100%;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:11px 14px;color:var(--text);font-family:inherit;font-size:0.88rem;outline:none;margin-bottom:16px;box-sizing:border-box" />
-
-        <button onclick="doCloudRestore()" style="width:100%;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;border-radius:12px;padding:13px;font-family:inherit;font-size:0.95rem;font-weight:800;cursor:pointer">☁️ Data Load Karo</button>
-
-        <div style="font-size:0.71rem;color:var(--muted);text-align:center;margin-top:12px;line-height:1.6">
-          🔒 Data load hone ke baad wahi password maangega<br>jo pehle set kiya tha
-        </div>
-      </div>
-
-    </div><!-- /wSlider -->
-  </div><!-- /setup-box -->
+  <!-- keep for restoreFromFile compatibility — hidden always -->
+  <input type="file" id="restoreFileInput" accept=".json" style="display:none" onchange="restoreFromFile(event)" />
 </div>
 
+<!-- ===== GOOGLE SIGN-IN SCREEN ===== -->
 <div id="lockScreen">
   <div class="lock-box">
-    <div class="lock-icon">🔐</div>
+    <div style="font-size:3.5rem;margin-bottom:8px">💰</div>
     <div class="lock-title">Udhar Khata</div>
-    <div class="lock-sub" id="lockOwnerLabel">Swagat hai! Kya karna chahte hain?</div>
+    <div class="lock-sub" id="lockOwnerLabel">Apna Google account se login karo</div>
 
-    <!-- Password section — sirf tab dikhega jab profile ho -->
-    <div id="lockPasswordSection" style="display:none;width:100%">
-      <input type="password" class="lock-input" id="lockInput" placeholder="••••" maxlength="10"
-        onkeydown="if(event.key==='Enter') checkPassword()" inputmode="numeric" />
-      <button class="btn-unlock" onclick="checkPassword()">🔓 Open Karo</button>
-      <div class="lock-hint" id="lockHint">Demo password: 1234</div>
-      <div style="height:1px;background:var(--border);margin:20px 0"></div>
-    </div>
+    <div id="lockPasswordSection" style="width:100%">
+      <!-- Google Sign In Button -->
+      <button onclick="signInWithGoogle()" id="googleSignInBtn"
+        style="display:flex;align-items:center;justify-content:center;gap:12px;width:100%;background:#fff;color:#1f1f1f;border:none;border-radius:12px;padding:14px 20px;font-family:inherit;font-size:1rem;font-weight:700;cursor:pointer;margin-bottom:12px;box-shadow:0 2px 12px rgba(0,0,0,0.3)">
+        <svg width="22" height="22" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/><path fill="none" d="M0 0h48v48H0z"/></svg>
+        Google se Login Karo
+      </button>
 
-    <!-- Teenon options hamesha -->
-    <div style="display:flex;flex-direction:column;gap:10px;width:100%">
-      <button onclick="goToWelcome('fresh')" style="background:linear-gradient(135deg,rgba(240,165,0,0.12),rgba(255,107,53,0.08));border:1.5px solid rgba(240,165,0,0.4);border-radius:12px;padding:11px 16px;color:var(--text);font-family:inherit;font-size:0.85rem;font-weight:700;cursor:pointer;width:100%;text-align:left;display:flex;align-items:center;gap:10px">
-        <span style="font-size:1.3rem">🆕</span>
-        <div>
-          <div style="color:var(--accent)">Naya Shuru Karo</div>
-          <div style="font-size:0.72rem;font-weight:500;color:var(--muted);margin-top:2px">Pehli baar use kar rahe hain — naam aur password set karein</div>
-        </div>
-      </button>
-      <button onclick="goToWelcome('cloud')" style="background:rgba(63,185,80,0.08);border:1px solid rgba(63,185,80,0.25);border-radius:12px;padding:11px 16px;color:var(--green);font-family:inherit;font-size:0.85rem;font-weight:700;cursor:pointer;width:100%;text-align:left;display:flex;align-items:center;gap:10px">
-        <span style="font-size:1.3rem">☁️</span>
-        <div>
-          <div>Doosre Device Pe Data Hai?</div>
-          <div style="font-size:0.72rem;font-weight:500;color:var(--muted);margin-top:2px">Supabase URL + Anon Key se data wapas lao</div>
-        </div>
-      </button>
-      <button onclick="goToWelcome('restore')" style="background:rgba(240,165,0,0.06);border:1px solid rgba(240,165,0,0.2);border-radius:12px;padding:11px 16px;color:var(--accent);font-family:inherit;font-size:0.85rem;font-weight:700;cursor:pointer;width:100%;text-align:left;display:flex;align-items:center;gap:10px">
-        <span style="font-size:1.3rem">♻️</span>
-        <div>
-          <div>Backup File Se Restore Karo</div>
-          <div style="font-size:0.72rem;font-weight:500;color:var(--muted);margin-top:2px">.json backup file se data wapas lao</div>
-        </div>
-      </button>
+      <div id="lockHint" class="lock-hint" style="color:var(--muted)">Ek hi click mein — saara data sync ho jaayega</div>
+
+      <div id="loginLoader" style="display:none;text-align:center;padding:10px;color:var(--muted);font-size:0.85rem">
+        ⏳ Login ho raha hai...
+      </div>
     </div>
   </div>
 </div>
@@ -623,8 +456,7 @@
     <div class="logo">💰 Udhar Khata</div>
     <div class="subtitle" id="ownerInfoDisplay">Apna Hisaab Saaf Rakho</div>
     <div class="header-btns">
-      <button class="btn-header" onclick="cloudSave(true)" id="cloudSyncBtn" title="Abhi cloud pe save karo" style="display:none">☁️ Sync</button>
-      <button class="btn-header" onclick="openCloudSetup()" id="cloudSetupBtn">⚙️ Cloud</button>
+      <span id="userInfoDisplay" style="display:none;font-size:0.75rem;color:var(--green);font-weight:700;padding:6px 10px;background:rgba(63,185,80,0.1);border-radius:8px;border:1px solid rgba(63,185,80,0.25)"></span>
       <button class="btn-header" onclick="toggleTheme()"><span id="themeIcon">☀️</span> <span id="themeText">Light Mode</span></button>
       <button class="btn-header" onclick="openCalendar()">📅 Calendar</button>
       <button class="btn-header" onclick="openSummary()">📈 Summary</button>
@@ -632,13 +464,11 @@
       <button class="btn-header" onclick="openBulkWA()">📱 Bulk WA</button>
       <button class="btn-header" onclick="openProfiles()">👥 Profiles</button>
       <button class="btn-header" onclick="openCustomize()">🎨 Customize</button>
-      <button class="btn-header" onclick="document.getElementById('settingsOverlay').classList.add('show')">🔑 Password</button>
       <button class="btn-header" onclick="openBin()">🗑️ Bin <span id="binBadge"></span></button>
       <button class="btn-header" onclick="downloadBackup()">💾 Backup</button>
-      <button class="btn-header" onclick="lockApp()">🔒 Lock</button>
-      <button class="btn-header" onclick="openLogout()" style="color:#f85149;border-color:rgba(248,81,73,0.3)">🚪 Logout</button>
+      <button class="btn-header" onclick="doSignOut()" style="color:#f85149;border-color:rgba(248,81,73,0.3)">🚪 Sign Out</button>
     </div>
-    <div style="margin-top:10px;font-size:0.72rem;font-weight:600;text-align:center;display:none" id="syncStatus">☁️ Cloud Sync ON</div>
+    <div style="margin-top:10px;font-size:0.72rem;font-weight:600;text-align:center" id="syncStatus">☁️ Cloud Sync ON</div>
   </header>
 
   <div class="search-bar">
@@ -970,53 +800,6 @@
 </div>
 
 <!-- ===== CLOUD SYNC SETUP OVERLAY ===== -->
-<div class="feat-overlay" id="cloudSetupOverlay" style="z-index:1005">
-  <div class="feat-box" style="max-height:95vh">
-    <div class="feat-header">
-      <div class="feat-title">☁️ Cloud Sync Setup</div>
-      <button class="btn-feat-close" onclick="closeFeature('cloudSetupOverlay')">✕</button>
-    </div>
-    <div id="cloudSetupStatus" style="display:none;padding:12px 14px;border-radius:10px;font-size:0.85rem;font-weight:600;margin-bottom:14px"></div>
-    <!-- Already configured -->
-    <div id="cloudConfigured" style="display:none">
-      <div style="background:rgba(63,185,80,0.1);border:1px solid rgba(63,185,80,0.3);border-radius:12px;padding:14px;margin-bottom:16px;font-size:0.85rem">
-        <div style="font-weight:800;color:var(--green);margin-bottom:4px">✅ Supabase Sync Active Hai!</div>
-        <div style="color:var(--muted)">Har entry ke baad automatically Supabase pe save hota hai.</div>
-        <div style="color:var(--muted);margin-top:6px;font-size:0.75rem">Project: <span id="configuredBinId" style="color:var(--accent);font-weight:700"></span></div>
-      </div>
-      <button onclick="testCloudSync()" style="width:100%;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;border-radius:12px;padding:12px;font-family:inherit;font-size:0.92rem;font-weight:800;cursor:pointer;margin-bottom:8px">🔄 Test Connection</button>
-      <button onclick="cloudSave(true)" style="width:100%;background:rgba(63,185,80,0.1);border:1px solid rgba(63,185,80,0.3);border-radius:12px;padding:11px;font-family:inherit;font-size:0.88rem;font-weight:700;color:var(--green);cursor:pointer;margin-bottom:8px">☁️ Abhi Sync Karo</button>
-      <button onclick="removeCloudConfig()" style="width:100%;background:rgba(248,81,73,0.08);border:1px solid rgba(248,81,73,0.25);border-radius:12px;padding:11px;font-family:inherit;font-size:0.85rem;font-weight:700;color:var(--red);cursor:pointer">🗑️ Cloud Sync Hatao</button>
-    </div>
-    <!-- Setup form -->
-    <div id="cloudSetupForm">
-      <div style="background:rgba(63,185,80,0.06);border:1px solid rgba(63,185,80,0.2);border-radius:12px;padding:14px;margin-bottom:16px;font-size:0.82rem;color:var(--muted);line-height:1.7">
-        📋 <b style="color:var(--text)">Supabase setup:</b><br>
-        1. <a href="https://supabase.com/dashboard" target="_blank" style="color:var(--accent)">supabase.com</a> → apna project open karo<br>
-        2. Project Settings → API → URL copy karo<br>
-        3. Wahi pe <b>anon public</b> key copy karo
-      </div>
-      <div style="font-size:0.72rem;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px">Supabase Project URL</div>
-      <input type="text" id="cloudApiKey" placeholder="https://xxxx.supabase.co" style="width:100%;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:11px 14px;color:var(--text);font-family:inherit;font-size:0.9rem;outline:none;margin-bottom:12px;box-sizing:border-box" />
-      <div style="font-size:0.72rem;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px">Anon Public Key</div>
-      <input type="password" id="cloudBinId" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." style="width:100%;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:11px 14px;color:var(--text);font-family:inherit;font-size:0.9rem;outline:none;margin-bottom:16px;box-sizing:border-box" />
-      <button onclick="saveCloudConfig()" style="width:100%;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;border-radius:12px;padding:13px;font-family:inherit;font-size:0.95rem;font-weight:800;cursor:pointer">✅ Save & Activate</button>
-      <div style="display:flex;align-items:center;gap:10px;margin:14px 0">
-        <div style="flex:1;height:1px;background:var(--border)"></div>
-        <span style="font-size:0.72rem;color:var(--muted);white-space:nowrap">ya phir</span>
-        <div style="flex:1;height:1px;background:var(--border)"></div>
-      </div>
-      <button onclick="skipCloudSetup()" style="width:100%;background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:12px;font-family:inherit;font-size:0.88rem;font-weight:700;color:var(--text);cursor:pointer;text-align:left;display:flex;align-items:center;gap:12px">
-        <span style="font-size:1.4rem">💾</span>
-        <div>
-          <div style="font-weight:800">Bina Cloud Ke Continue Karo</div>
-          <div style="font-size:0.75rem;color:var(--muted);margin-top:2px">Manual backup system use hoga</div>
-        </div>
-      </button>
-      <div style="font-size:0.72rem;color:var(--muted);text-align:center;margin-top:10px">🔒 Keys sirf aapke device ke localStorage mein save hongi</div>
-    </div>
-  </div>
-</div>
 
 <div class="toast" id="toast"></div>
 
@@ -1031,25 +814,22 @@
   var THEME_KEY = 'udharKhata_theme';
   var PROFILE_KEY = 'udharKhata_profile';
 
-  // ===== SUPABASE CLOUD SYNC =====
-  var SB_URL  = localStorage.getItem('udharKhata_surl') || '';
-  var SB_KEY  = localStorage.getItem('udharKhata_skey') || '';
-  var SB_TABLE = 'khata';
-  var SB_ROW_ID = 1; // hamesha ek hi row use karenge
+  // ===== FIREBASE SETUP =====
+  var firebaseConfig = {
+    apiKey: "AIzaSyBL5XFHUXeoB3sXSKs4ayNSacER9vEQgv4",
+    authDomain: "udhar-khata-10-03-2026.firebaseapp.com",
+    databaseURL: "https://udhar-khata-10-03-2026-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "udhar-khata-10-03-2026",
+    storageBucket: "udhar-khata-10-03-2026.firebasestorage.app",
+    messagingSenderId: "786959694902",
+    appId: "1:786959694902:web:ba4bd454f6a24f0dce2c97"
+  };
+  firebase.initializeApp(firebaseConfig);
+  var fbAuth = firebase.auth();
+  var fbDb   = firebase.database();
+  var currentUser = null;
+  var dbRef = null;
   var cloudSyncTimer = null;
-  var isSaving  = false;
-  var isLoading = false;
-  var lastCloudSync = null;
-
-  function sbHeaders() {
-    return {
-      'Content-Type': 'application/json',
-      'apikey': SB_KEY,
-      'Authorization': 'Bearer ' + SB_KEY,
-      'Prefer': 'return=minimal'
-    };
-  }
-  function sbUrl() { return SB_URL + '/rest/v1/' + SB_TABLE; }
 
   function showSyncStatus(msg, color) {
     var el = document.getElementById('syncStatus');
@@ -1058,140 +838,95 @@
     el.style.color = color || 'var(--muted)';
   }
 
-  function scheduleCloudSave() {
-    if (!SB_URL || !SB_KEY) return;
-    if (cloudSyncTimer) clearTimeout(cloudSyncTimer);
-    cloudSyncTimer = setTimeout(function() { cloudSave(false); }, 2000);
-    showSyncStatus('☁️ Saving...', 'var(--accent)');
+  // ===== GOOGLE SIGN IN/OUT =====
+  function signInWithGoogle() {
+    document.getElementById('loginLoader').style.display = 'block';
+    document.getElementById('googleSignInBtn').style.display = 'none';
+    document.getElementById('lockHint').textContent = '⏳ Login ho raha hai...';
+    var provider = new firebase.auth.GoogleAuthProvider();
+    fbAuth.signInWithPopup(provider).catch(function(err) {
+      document.getElementById('loginLoader').style.display = 'none';
+      document.getElementById('googleSignInBtn').style.display = 'flex';
+      document.getElementById('lockHint').textContent = '❌ Login fail hua — dobara try karo';
+      console.error('Login error:', err);
+    });
   }
 
-  // ID-based smart merge — second array wins on same ID
-  function mergeById(firstArr, secondArr) {
-    var map = {};
-    safeArr(firstArr).forEach(function(l){ if(l && l.id) map[l.id] = l; });
-    safeArr(secondArr).forEach(function(l){ if(l && l.id) map[l.id] = l; });
-    return Object.values(map).sort(function(a,b){ return (a.id||0)-(b.id||0); });
+  function doSignOut() {
+    if (!confirm('Sign out karna chahte hain?')) return;
+    fbAuth.signOut();
+  }
+
+  // ===== FIREBASE AUTH STATE =====
+  fbAuth.onAuthStateChanged(function(user) {
+    if (user) {
+      currentUser = user;
+      dbRef = fbDb.ref('users/' + user.uid + '/khata');
+
+      // Header mein naam dikhao
+      var uiEl = document.getElementById('userInfoDisplay');
+      if (uiEl) { uiEl.textContent = '👤 ' + (user.displayName || user.email); uiEl.style.display = ''; }
+
+      // Lock screen hide karo
+      document.getElementById('lockScreen').classList.add('hidden');
+      showSyncStatus('☁️ Syncing...', 'var(--accent)');
+
+      // REALTIME LISTENER — jab bhi cloud pe change ho, turant update
+      dbRef.on('value', function(snapshot) {
+        var rec = snapshot.val();
+        if (!rec) { showSyncStatus('☁️ Cloud Sync ON', 'var(--green)'); return; }
+        try {
+          var cloudLoans = safeArr(rec.loans).map(sanitizeLoan).filter(Boolean);
+          var cloudBin   = safeArr(rec.bin).map(sanitizeLoan).filter(Boolean);
+          loans = cloudLoans;
+          bin   = cloudBin;
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(loans));
+          localStorage.setItem(BIN_KEY, JSON.stringify(bin));
+          if (rec.profile && typeof rec.profile === 'object') saveProfile(rec.profile);
+          renderAll(); updateBinBadge(); updateOwnerDisplay();
+          showSyncStatus('☁️ Synced ✅', 'var(--green)');
+        } catch(e) { console.error('Firebase read error:', e); }
+      });
+
+    } else {
+      // Logged out — lock screen dikhao
+      currentUser = null;
+      dbRef = null;
+      var uiEl = document.getElementById('userInfoDisplay');
+      if (uiEl) uiEl.style.display = 'none';
+      document.getElementById('lockScreen').classList.remove('hidden');
+      document.getElementById('loginLoader').style.display = 'none';
+      document.getElementById('googleSignInBtn').style.display = 'flex';
+      document.getElementById('lockHint').textContent = 'Ek hi click mein — saara data sync ho jaayega';
+    }
+  });
+
+  // ===== CLOUD SAVE — Firebase pe save karo =====
+  function scheduleCloudSave() {
+    if (!currentUser || !dbRef) return;
+    if (cloudSyncTimer) clearTimeout(cloudSyncTimer);
+    cloudSyncTimer = setTimeout(function() { cloudSave(false); }, 1500);
+    showSyncStatus('☁️ Saving...', 'var(--accent)');
   }
 
   function cloudSave(showMsg) {
-    if (!SB_URL || !SB_KEY) { if(showMsg) showToast('⚠️ Cloud sync setup nahi hai!'); return; }
-    if (isSaving) return;
-    isSaving = true;
-    showSyncStatus('☁️ Saving...', 'var(--accent)');
-
-    // Step 1: Cloud ka latest data fetch karo
-    fetch(sbUrl() + '?id=eq.' + SB_ROW_ID, {
-      headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY }
-    })
-    .then(function(r) { return r.ok ? r.json() : []; })
-    .then(function(rows) {
-      var rowExists = rows && rows.length > 0;
-
-      // Step 2: Pehle cloud ka data merge karo (cloud + local)
-      if (rowExists) {
-        try {
-          var rec = JSON.parse(rows[0].data);
-          var cloudLoans = safeArr(rec.loans).map(sanitizeLoan).filter(Boolean);
-          var cloudBin   = safeArr(rec.bin).map(sanitizeLoan).filter(Boolean);
-          // Local wins (local = abhi jo naya save ho raha hai)
-          loans = mergeById(cloudLoans, loans);
-          bin   = mergeById(cloudBin, bin);
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(loans));
-          localStorage.setItem(BIN_KEY, JSON.stringify(bin));
-          renderAll(); updateBinBadge();
-        } catch(e) {}
-      }
-
-      // Step 3: Merged data Supabase pe save karo
-      var payload = JSON.stringify({
-        loans: loans, bin: bin,
-        savedAt: new Date().toLocaleString('en-IN'),
-        savedAtMs: Date.now(),
-        profile: getProfile(),
-        password: localStorage.getItem(PW_KEY) || '1234'
-      });
-
-      if (rowExists) {
-        return fetch(sbUrl() + '?id=eq.' + SB_ROW_ID, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json', 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Prefer': 'return=minimal' },
-          body: JSON.stringify({ data: payload })
-        });
-      } else {
-        return fetch(sbUrl(), {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Prefer': 'return=minimal' },
-          body: JSON.stringify({ id: SB_ROW_ID, data: payload })
-        });
-      }
-    })
-    .then(function(r) {
-      isSaving = false;
-      if (!r || !r.ok) {
-        showSyncStatus('⚠️ Save failed', 'var(--red)');
-        setTimeout(function(){ if(SB_URL && SB_KEY) cloudSave(false); }, 10000);
-        return;
-      }
-      lastCloudSync = Date.now();
-      showSyncStatus('✅ Synced ' + new Date().toLocaleTimeString('en-IN', {hour:'2-digit', minute:'2-digit'}), 'var(--green)');
+    if (!currentUser || !dbRef) return;
+    var payload = {
+      loans: loans,
+      bin: bin,
+      profile: getProfile(),
+      savedAt: new Date().toLocaleString('en-IN'),
+      savedAtMs: Date.now()
+    };
+    dbRef.set(payload)
+    .then(function() {
+      showSyncStatus('☁️ Synced ✅', 'var(--green)');
       if (showMsg) showToast('☁️ Cloud sync ho gaya!');
-      setTimeout(function(){ showSyncStatus('☁️ Cloud Sync ON', 'var(--green)'); }, 3000);
     })
     .catch(function(err) {
-      isSaving = false;
-      console.error('Cloud save error:', err);
       showSyncStatus('⚠️ Sync failed', 'var(--red)');
-      setTimeout(function(){ if(SB_URL && SB_KEY) cloudSave(false); }, 10000);
+      console.error('Firebase save error:', err);
     });
-  }
-
-  function cloudLoad() {
-    if (!SB_URL || !SB_KEY) { showSyncStatus('☁️ Cloud Sync OFF', 'var(--muted)'); return; }
-    if (isLoading) return;
-    isLoading = true;
-
-    fetch(sbUrl() + '?id=eq.' + SB_ROW_ID, {
-      headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY }
-    })
-    .then(function(r) {
-      if (!r.ok) throw new Error('HTTP ' + r.status);
-      return r.json();
-    })
-    .then(function(rows) {
-      isLoading = false;
-      if (!rows || rows.length === 0) {
-        showSyncStatus('☁️ Cloud Sync ON', 'var(--green)');
-        return;
-      }
-      var rec = JSON.parse(rows[0].data);
-      var cloudLoans = safeArr(rec.loans).map(sanitizeLoan).filter(Boolean);
-      var cloudBin   = safeArr(rec.bin).map(sanitizeLoan).filter(Boolean);
-
-      // Cloud is truth — sirf woh entries add karo jo abhi locally add hui hain cloud ke baad
-      loans = mergeById(cloudLoans, loans); // cloud pehle, local baad (local ke naye ID jud jaate hain)
-      bin   = mergeById(cloudBin, bin);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(loans));
-      localStorage.setItem(BIN_KEY, JSON.stringify(bin));
-      if (rec.profile && typeof rec.profile === 'object') saveProfile(rec.profile);
-      if (rec.password) localStorage.setItem(PW_KEY, rec.password);
-      renderAll(); updateBinBadge(); updateOwnerDisplay();
-      showSyncStatus('☁️ Cloud Sync ON', 'var(--green)');
-      lastCloudSync = Date.now();
-    })
-    .catch(function(err) {
-      isLoading = false;
-      console.error('Cloud load error:', err);
-      showSyncStatus('⚠️ Load failed: ' + err.message, 'var(--red)');
-    });
-  }
-
-  // Auto-poll every 15 sec
-  function startCloudPolling() {
-    if (!SB_URL || !SB_KEY) return;
-    setInterval(function() {
-      var locked = !document.getElementById('lockScreen').classList.contains('hidden');
-      if (!locked && !isLoading && !isSaving) cloudLoad();
-    }, 15000);
   }
 
   // ===== MULTI PROFILE KEYS =====
@@ -1243,7 +978,7 @@
   }
   function goToSetup()        { showStep(2); }
   function goToRestore()      { showStep(3); }
-  function goToCloudRestore() { showStep(4); document.getElementById('cloudRestoreMsg').style.display='none'; }
+  function goToCloudRestore() { showStep(3); }
   function backToStep1()      { showStep(1); }
 
   function selectCity(city) {
@@ -1256,64 +991,15 @@
     document.querySelectorAll('.city-chip').forEach(function(c){ c.classList.remove('selected'); });
   }
 
-  var setupCloudChoice = null; // null=not chosen, true=yes, false=no
-
-  function selectCloudOption(hasCloud) {
-    setupCloudChoice = hasCloud;
-    var yesBtn = document.getElementById('cloudYesBtn');
-    var noBtn  = document.getElementById('cloudNoBtn');
-    var fields = document.getElementById('setupCloudFields');
-    var noInfo = document.getElementById('setupNoCloudInfo');
-
-    if (hasCloud) {
-      yesBtn.style.background = 'rgba(63,185,80,0.15)';
-      yesBtn.style.borderColor = 'rgba(63,185,80,0.5)';
-      yesBtn.style.color = 'var(--green)';
-      noBtn.style.background = 'var(--card)';
-      noBtn.style.borderColor = 'var(--border)';
-      noBtn.style.color = 'var(--muted)';
-      fields.style.display = 'block';
-      noInfo.style.display = 'none';
-    } else {
-      noBtn.style.background = 'rgba(240,165,0,0.1)';
-      noBtn.style.borderColor = 'rgba(240,165,0,0.4)';
-      noBtn.style.color = 'var(--accent)';
-      yesBtn.style.background = 'var(--card)';
-      yesBtn.style.borderColor = 'var(--border)';
-      yesBtn.style.color = 'var(--muted)';
-      fields.style.display = 'none';
-      noInfo.style.display = 'block';
-    }
-  }
-
   function completeSetup() {
     var name = document.getElementById('setupOwnerName').value.trim();
     var city = document.getElementById('setupCity').value.trim();
-    var pw   = document.getElementById('setupPassword').value.trim();
     if (!name) { showToast('❌ Apna naam daalo!'); return; }
     if (!city) { showToast('❌ Shehar/location daalo!'); return; }
     saveProfile({ name: name, city: city, setupDate: today });
-    if (pw && pw.length >= 4) localStorage.setItem(PW_KEY, pw);
-
-    // Cloud setup — if user chose YES and filled keys
-    if (setupCloudChoice === true) {
-      var sbUrl2 = (document.getElementById('setupApiKey').value || '').trim().replace(/\/+$/, '');
-      var sbKey2 = (document.getElementById('setupBinId').value || '').trim();
-      if (sbUrl2 && sbKey2) {
-        localStorage.setItem('udharKhata_surl', sbUrl2);
-        localStorage.setItem('udharKhata_skey', sbKey2);
-        SB_URL = sbUrl2; SB_KEY = sbKey2;
-        updateCloudBtn(true);
-        showSyncStatus('☁️ Cloud Sync ON', 'var(--green)');
-        setTimeout(function(){ cloudSave(false); startCloudPolling(); }, 1500);
-      }
-    } else if (setupCloudChoice === false) {
-      var syncBtn = document.getElementById('cloudSetupBtn');
-      if (syncBtn) { syncBtn.style.display = 'none'; }
-      showSyncStatus('💾 Manual Backup Mode', 'var(--muted)');
-    }
-
     document.getElementById('welcomeScreen').classList.add('hidden');
+    // Data Firebase pe save karo (user already logged in hai)
+    if (currentUser && dbRef) cloudSave(false);
     updateOwnerDisplay();
     showToast('🎉 Welcome, ' + name + '! Shuru karo!');
   }
@@ -1395,34 +1081,7 @@
 
   function getPassword() { return localStorage.getItem(PW_KEY) || '1234'; }
 
-  function checkPassword() {
-    var input = document.getElementById('lockInput').value;
-    if (input === getPassword()) {
-      document.getElementById('lockScreen').classList.add('hidden');
-      document.getElementById('lockInput').value = '';
-      // isLoading reset karo — force fresh cloud fetch on unlock
-      if (SB_URL && SB_KEY) {
-        isLoading = false;
-        isSaving = false;
-        showSyncStatus('☁️ Syncing...', 'var(--accent)');
-        cloudLoad();
-      }
-    } else {
-      var el = document.getElementById('lockInput');
-      el.classList.add('wrong');
-      setTimeout(function(){ el.classList.remove('wrong'); el.value=''; }, 500);
-      document.getElementById('lockHint').textContent = '❌ Galat password!';
-      setTimeout(function(){ document.getElementById('lockHint').textContent = 'Dobara try karo'; }, 2000);
-    }
-  }
-
-  function lockApp() {
-    document.getElementById('lockScreen').classList.remove('hidden');
-    var li = document.getElementById('lockInput');
-    if (li) li.value = '';
-    var pwSec = document.getElementById('lockPasswordSection');
-    if (pwSec) pwSec.style.display = 'block';
-  }
+  function lockApp() { fbAuth.signOut(); }
 
   function changePassword() {
     var cur = document.getElementById('currentPw').value;
@@ -2340,27 +1999,12 @@
     document.getElementById('logoutOverlay').classList.remove('show');
   }
   function doLogout() {
-    try { localStorage.removeItem(STORAGE_KEY); } catch(e){}
-    try { localStorage.removeItem(BIN_KEY); } catch(e){}
-    try { localStorage.removeItem(PW_KEY); } catch(e){}
-    try { localStorage.removeItem(PROFILE_KEY); } catch(e){}
-    try { localStorage.removeItem('udharKhata_surl'); } catch(e){}
-    try { localStorage.removeItem('udharKhata_skey'); } catch(e){}
-    SB_URL = ''; SB_KEY = '';
-    loans = []; bin = [];
     closeLogout();
-    var ws = document.getElementById('welcomeScreen');
-    var ls = document.getElementById('lockScreen');
-    var li = document.getElementById('lockInput');
-    var lol = document.getElementById('lockOwnerLabel');
-    var lh = document.getElementById('lockHint');
-    if (ws) ws.classList.add('hidden');
-    if (ls) ls.classList.remove('hidden');
-    if (li) li.value = '';
-    if (lol) lol.textContent = 'Password enter karke open karo';
-    if (lh) lh.textContent = 'Demo password: 1234';
-    updateCloudBtn(false);
-    showToast('✅ Logout ho gaye!');
+    fbAuth.signOut().then(function() {
+      loans = []; bin = [];
+      renderAll(); updateBinBadge();
+      showToast('✅ Sign out ho gaye!');
+    });
   }
   function logoutWithBackup() {
     // Pehle backup download, phir logout
@@ -2831,177 +2475,6 @@
   }
 
   // ===== CLOUD SETUP FUNCTIONS =====
-  function openCloudSetup() {
-    var configured = SB_URL && SB_KEY;
-    document.getElementById('cloudConfigured').style.display = configured ? 'block' : 'none';
-    document.getElementById('cloudSetupForm').style.display = configured ? 'none' : 'block';
-    document.getElementById('cloudSetupStatus').style.display = 'none';
-    if (configured) {
-      document.getElementById('configuredBinId').textContent = SB_URL.replace('https://','').split('.')[0];
-    }
-    document.getElementById('cloudSetupOverlay').classList.add('show');
-  }
-
-  function saveCloudConfig() {
-    var url = (document.getElementById('cloudApiKey').value || '').trim().replace(/\/+$/, '');
-    var key = (document.getElementById('cloudBinId').value || '').trim();
-    if (!url) { showCloudMsg('❌ Project URL daalo!', 'var(--red)'); return; }
-    if (!key) { showCloudMsg('❌ Anon Key daalo!', 'var(--red)'); return; }
-    showCloudMsg('🔄 Connecting...', 'var(--accent)');
-
-    // Test connection
-    fetch(url + '/rest/v1/' + SB_TABLE + '?id=eq.1', {
-      headers: { 'apikey': key, 'Authorization': 'Bearer ' + key }
-    })
-    .then(function(r) {
-      if (r.status === 401) throw new Error('Anon Key galat hai!');
-      if (!r.ok) throw new Error('HTTP ' + r.status + ' — URL check karo');
-      return r.json();
-    })
-    .then(function() {
-      localStorage.setItem('udharKhata_surl', url);
-      localStorage.setItem('udharKhata_skey', key);
-      SB_URL = url; SB_KEY = key;
-      // Initial save
-      cloudSave(false);
-      updateCloudBtn(true);
-      showSyncStatus('☁️ Cloud Sync ON', 'var(--green)');
-      showCloudMsg('✅ Connected! Supabase se sync ho gaya!', 'var(--green)');
-      startCloudPolling();
-      setTimeout(function() {
-        document.getElementById('cloudConfigured').style.display = 'block';
-        document.getElementById('cloudSetupForm').style.display = 'none';
-        document.getElementById('configuredBinId').textContent = url.replace('https://','').split('.')[0];
-      }, 1000);
-    })
-    .catch(function(err) {
-      showCloudMsg('❌ ' + (err.message || 'Connection fail! Keys dobara check karo.'), 'var(--red)');
-    });
-  }
-
-  function testCloudSync() {
-    showCloudMsg('🔄 Testing...', 'var(--accent)');
-    fetch(sbUrl() + '?id=eq.' + SB_ROW_ID, {
-      headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY }
-    })
-    .then(function(r) { if(!r.ok) throw new Error(); return r.json(); })
-    .then(function(rows) {
-      var savedAt = rows && rows[0] ? JSON.parse(rows[0].data).savedAt : 'Unknown';
-      showCloudMsg('✅ Connection OK! Last sync: ' + savedAt, 'var(--green)');
-    })
-    .catch(function() { showCloudMsg('❌ Connection fail! Keys check karo.', 'var(--red)'); });
-  }
-
-  function removeCloudConfig() {
-    if (!confirm('⚠️ Cloud sync band ho jaayegi. Local data safe rahega. Pakka?')) return;
-    localStorage.removeItem('udharKhata_surl');
-    localStorage.removeItem('udharKhata_skey');
-    SB_URL = ''; SB_KEY = '';
-    updateCloudBtn(false);
-    showSyncStatus('☁️ Cloud Sync OFF', 'var(--muted)');
-    closeFeature('cloudSetupOverlay');
-    showToast('☁️ Cloud sync band ho gayi!');
-  }
-
-  function showCloudRestoreMsg(msg, color) {
-    var el = document.getElementById('cloudRestoreMsg');
-    el.style.display = 'block';
-    el.textContent = msg;
-    el.style.background = color === 'green' ? 'rgba(63,185,80,0.1)' : (color === 'red' ? 'rgba(248,81,73,0.1)' : 'rgba(240,165,0,0.1)');
-    el.style.border = '1px solid ' + (color === 'green' ? 'rgba(63,185,80,0.4)' : (color === 'red' ? 'rgba(248,81,73,0.4)' : 'rgba(240,165,0,0.4)'));
-    el.style.color = color === 'green' ? 'var(--green)' : (color === 'red' ? 'var(--red)' : 'var(--accent)');
-  }
-
-  function doCloudRestore() {
-    var url = (document.getElementById('cloudRestoreKey').value || '').trim().replace(/\/+$/, '');
-    var key = (document.getElementById('cloudRestoreBin').value || '').trim();
-    if (!url) { showCloudRestoreMsg('❌ Supabase URL daalo!', 'red'); return; }
-    if (!key) { showCloudRestoreMsg('❌ Anon Key daalo!', 'red'); return; }
-
-    showCloudRestoreMsg('☁️ Data load ho raha hai...', 'yellow');
-
-    fetch(url + '/rest/v1/' + SB_TABLE + '?id=eq.' + SB_ROW_ID, {
-      headers: { 'apikey': key, 'Authorization': 'Bearer ' + key }
-    })
-    .then(function(r) {
-      if (r.status === 401) throw new Error('401');
-      if (!r.ok) throw new Error('HTTP ' + r.status);
-      return r.json();
-    })
-    .then(function(rows) {
-      if (!rows || rows.length === 0) throw new Error('empty');
-      var rec = JSON.parse(rows[0].data);
-
-      localStorage.setItem('udharKhata_surl', url);
-      localStorage.setItem('udharKhata_skey', key);
-      SB_URL = url; SB_KEY = key;
-
-      var cloudLoans = safeArr(rec.loans).map(sanitizeLoan).filter(Boolean);
-      var cloudBin   = safeArr(rec.bin).map(sanitizeLoan).filter(Boolean);
-      loans = cloudLoans; bin = cloudBin;
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(loans));
-      localStorage.setItem(BIN_KEY, JSON.stringify(bin));
-      if (rec.profile && typeof rec.profile === 'object') saveProfile(rec.profile);
-      if (rec.password) localStorage.setItem(PW_KEY, rec.password);
-
-      showCloudRestoreMsg('✅ ' + loans.length + ' loans load ho gaye! Ab password daalo.', 'green');
-
-      setTimeout(function() {
-        document.getElementById('welcomeScreen').classList.add('hidden');
-        updateOwnerDisplay(); renderAll(); updateBinBadge();
-        updateCloudBtn(true); startCloudPolling();
-        showSyncStatus('☁️ Cloud Sync ON', 'var(--green)');
-        var ls = document.getElementById('lockScreen');
-        var pwSec = document.getElementById('lockPasswordSection');
-        var lol = document.getElementById('lockOwnerLabel');
-        var lh = document.getElementById('lockHint');
-        if (ls) ls.classList.remove('hidden');
-        if (pwSec) pwSec.style.display = 'block';
-        if (lol) lol.textContent = '🔐 Apna password daalo';
-        if (lh) lh.textContent = '👆 Wahi password daalo jo pehle set kiya tha';
-        var li = document.getElementById('lockInput');
-        if (li) { li.value = ''; li.focus(); }
-        showToast('✅ Cloud se ' + loans.length + ' loans restore ho gaye!');
-      }, 1200);
-    })
-    .catch(function(err) {
-      if (err.message === '401') showCloudRestoreMsg('❌ Anon Key galat hai!', 'red');
-      else if (err.message === 'empty') showCloudRestoreMsg('❌ Koi data nahi mila — URL/Key check karo.', 'red');
-      else showCloudRestoreMsg('❌ Data load nahi ho saka. Keys check karo.', 'red');
-    });
-  }
-
-  function showCloudMsg(msg, color) {
-    var el = document.getElementById('cloudSetupStatus');
-    el.style.display = 'block';
-    el.textContent = msg;
-    el.style.background = color === 'var(--green)' ? 'rgba(63,185,80,0.1)' : (color === 'var(--red)' ? 'rgba(248,81,73,0.1)' : 'rgba(240,165,0,0.1)');
-    el.style.border = '1px solid ' + color;
-    el.style.color = color;
-  }
-
-  function skipCloudSetup() {
-    closeFeature('cloudSetupOverlay');
-    updateCloudBtn(false);
-    showSyncStatus('💾 Manual Backup Mode', 'var(--muted)');
-    showToast('💾 Manual mode — Backup button se data save karo!');
-  }
-
-  function updateCloudBtn(active) {
-    var setupBtn = document.getElementById('cloudSetupBtn');
-    var syncBtn  = document.getElementById('cloudSyncBtn');
-    var statusEl = document.getElementById('syncStatus');
-    if (active) {
-      if (setupBtn) { setupBtn.textContent = '☁️ Cloud ✅'; setupBtn.style.color = 'var(--green)'; }
-      if (syncBtn)  { syncBtn.style.display = ''; }
-      if (statusEl) { statusEl.style.display = ''; }
-    } else {
-      if (setupBtn) { setupBtn.textContent = '⚙️ Cloud'; setupBtn.style.color = ''; }
-      if (syncBtn)  { syncBtn.style.display = 'none'; }
-      if (statusEl) { statusEl.style.display = 'none'; }
-    }
-  }
-
   loadTheme();
   loadData();
   renderAll();
@@ -3011,31 +2484,6 @@
   var langBtnEl = document.getElementById('langBtn');
   if (langBtnEl) langBtnEl.style.display = 'none';
   document.getElementById('startDate').valueAsDate = new Date();
-  setTimeout(function(){ cloudLoad(); updateCloudBtn(!!(SB_URL && SB_KEY)); if(SB_URL && SB_KEY) startCloudPolling(); }, 1000);
-
-  (function() {
-    var profile = getProfile();
-    if (!profile) {
-      // Pehli baar — lockScreen dikhao sirf options ke saath (no password)
-      document.getElementById('lockScreen').classList.remove('hidden');
-      document.getElementById('welcomeScreen').classList.add('hidden');
-      // Password section hide rakho
-      var pwSec = document.getElementById('lockPasswordSection');
-      if (pwSec) pwSec.style.display = 'none';
-      var lol = document.getElementById('lockOwnerLabel');
-      if (lol) lol.textContent = 'Swagat hai! Kya karna chahte hain?';
-    } else {
-      // Returning user — password section bhi dikhao
-      var pwSec = document.getElementById('lockPasswordSection');
-      if (pwSec) pwSec.style.display = 'block';
-      updateOwnerDisplay();
-      var lol = document.getElementById('lockOwnerLabel');
-      if (lol) {
-        var p = profile;
-        lol.textContent = '👤 ' + p.name + (p.city ? ' • 📍 ' + p.city : '') + ' — password daalo';
-      }
-    }
-  })();
 </script>
 </body>
 </html>
