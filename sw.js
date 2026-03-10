@@ -1,48 +1,26 @@
-var CACHE_NAME = 'udhar-khata-v1';
-var urlsToCache = [
-  '/',
-  '/index.html',
-  '/manifest.json'
-];
+// Version badlo = purana cache delete, naya load
+const CACHE_VERSION = 'udhar-khata-v' + Date.now();
 
-// Install — cache files
-self.addEventListener('install', function(event) {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then(function(cache) {
-      return cache.addAll(urlsToCache);
-    })
-  );
+self.addEventListener('install', function(e) {
   self.skipWaiting();
 });
 
-// Activate — clean old caches
-self.addEventListener('activate', function(event) {
-  event.waitUntil(
+self.addEventListener('activate', function(e) {
+  e.waitUntil(
     caches.keys().then(function(keys) {
-      return Promise.all(
-        keys.filter(function(key) { return key !== CACHE_NAME; })
-            .map(function(key) { return caches.delete(key); })
-      );
-    })
+      return Promise.all(keys.map(function(key) { return caches.delete(key); }));
+    }).then(function() { return self.clients.claim(); })
   );
-  self.clients.claim();
 });
 
-// Fetch — serve from cache, fallback to network
-self.addEventListener('fetch', function(event) {
-  event.respondWith(
-    caches.match(event.request).then(function(response) {
-      if (response) return response;
-      return fetch(event.request).then(function(networkResponse) {
-        if (!networkResponse || networkResponse.status !== 200) return networkResponse;
-        var clone = networkResponse.clone();
-        caches.open(CACHE_NAME).then(function(cache) {
-          cache.put(event.request, clone);
-        });
-        return networkResponse;
-      }).catch(function() {
-        return caches.match('/index.html');
-      });
-    })
-  );
+self.addEventListener('fetch', function(e) {
+  if (e.request.url.includes('index.html') || e.request.mode === 'navigate') {
+    e.respondWith(
+      fetch(e.request, { cache: 'no-store' }).catch(function() {
+        return caches.match(e.request);
+      })
+    );
+    return;
+  }
+  e.respondWith(fetch(e.request).catch(function() { return caches.match(e.request); }));
 });
