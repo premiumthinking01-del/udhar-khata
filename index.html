@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="hi" data-theme="dark">
 <head>
@@ -466,6 +465,8 @@
       <button class="btn-header" onclick="openCustomize()">🎨 Customize</button>
       <button class="btn-header" onclick="openBin()">🗑️ Bin <span id="binBadge"></span></button>
       <button class="btn-header" onclick="downloadBackup()">💾 Backup</button>
+      <button class="btn-header" onclick="openShare()">🔗 Share</button>
+      <button class="btn-header" onclick="openNotifSettings()" id="notifBtn">🔔 Reminders</button>
       <button class="btn-header" onclick="doSignOut()" style="color:#f85149;border-color:rgba(248,81,73,0.3)">🚪 Sign Out</button>
     </div>
     <div style="margin-top:10px;font-size:0.72rem;font-weight:600;text-align:center" id="syncStatus">☁️ Cloud Sync ON</div>
@@ -801,6 +802,51 @@
 
 <!-- ===== CLOUD SYNC SETUP OVERLAY ===== -->
 
+<!-- ===== SHARE KHATA OVERLAY ===== -->
+<div class="feat-overlay" id="shareOverlay" style="z-index:1005">
+  <div class="feat-box">
+    <div class="feat-header">
+      <div class="feat-title">🔗 Khata Share Karo</div>
+      <button class="btn-feat-close" onclick="closeFeature('shareOverlay')">✕</button>
+    </div>
+    <div style="background:rgba(63,185,80,0.08);border:1px solid rgba(63,185,80,0.25);border-radius:12px;padding:14px;margin-bottom:16px;font-size:0.83rem;color:var(--muted);line-height:1.7">
+      👁️ <b style="color:var(--text)">Read-Only Link</b> — jisko bhi bhejo woh sirf dekh sakta hai, kuch edit nahi kar sakta.
+    </div>
+    <div style="font-size:0.72rem;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">Aapka Share Link</div>
+    <div style="display:flex;gap:8px;margin-bottom:16px">
+      <input type="text" id="shareLinkInput" readonly style="flex:1;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:11px 14px;color:var(--accent);font-family:monospace;font-size:0.78rem;outline:none;cursor:pointer" onclick="this.select()" />
+      <button onclick="copyShareLink()" style="background:var(--accent);color:#000;border:none;border-radius:10px;padding:11px 16px;font-family:inherit;font-size:0.85rem;font-weight:800;cursor:pointer;white-space:nowrap">📋 Copy</button>
+    </div>
+    <button onclick="shareViaWA()" style="width:100%;display:flex;align-items:center;justify-content:center;gap:10px;background:rgba(37,211,102,0.1);border:1.5px solid rgba(37,211,102,0.35);border-radius:12px;padding:13px;font-family:inherit;font-size:0.92rem;font-weight:800;color:#25d366;cursor:pointer;margin-bottom:10px">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="#25d366"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+      WhatsApp pe Share Karo
+    </button>
+    <div style="font-size:0.72rem;color:var(--muted);text-align:center;margin-top:8px">🔒 Sirf aap apna data edit kar sakte ho</div>
+  </div>
+</div>
+
+<!-- ===== NOTIFICATION SETTINGS OVERLAY ===== -->
+<div class="feat-overlay" id="notifOverlay" style="z-index:1005">
+  <div class="feat-box">
+    <div class="feat-header">
+      <div class="feat-title">🔔 EMI Reminders</div>
+      <button class="btn-feat-close" onclick="closeFeature('notifOverlay')">✕</button>
+    </div>
+    <div id="notifStatusBox" style="border-radius:12px;padding:14px;margin-bottom:16px;font-size:0.85rem;font-weight:600;text-align:center"></div>
+    <button onclick="enableNotifications()" id="notifEnableBtn" style="width:100%;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;border-radius:12px;padding:13px;font-family:inherit;font-size:0.95rem;font-weight:800;cursor:pointer;margin-bottom:10px">🔔 Notifications On Karo</button>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;font-size:0.82rem;color:var(--muted);line-height:1.8">
+      📅 <b style="color:var(--text)">Kab reminder aayega?</b><br>
+      • EMI due hone se <b style="color:var(--accent)">1 din pehle</b><br>
+      • Due date pe <b style="color:var(--accent)">subah 9 baje</b><br>
+      • Click karo → <b style="color:var(--green)">WhatsApp seedha khulega</b>
+    </div>
+    <div style="margin-top:14px">
+      <div style="font-size:0.72rem;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">Aaj Ke Due / Overdue</div>
+      <div id="notifDueList" style="max-height:200px;overflow-y:auto"></div>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -885,19 +931,22 @@
           if (rec.profile && typeof rec.profile === 'object') saveProfile(rec.profile);
           renderAll(); updateBinBadge(); updateOwnerDisplay();
           showSyncStatus('☁️ Synced ✅', 'var(--green)');
+          checkAndNotify();
         } catch(e) { console.error('Firebase read error:', e); }
       });
 
     } else {
-      // Logged out — lock screen dikhao
+      // Logged out — lock screen dikhao (sirf normal mode mein)
       currentUser = null;
       dbRef = null;
       var uiEl = document.getElementById('userInfoDisplay');
       if (uiEl) uiEl.style.display = 'none';
-      document.getElementById('lockScreen').classList.remove('hidden');
-      document.getElementById('loginLoader').style.display = 'none';
-      document.getElementById('googleSignInBtn').style.display = 'flex';
-      document.getElementById('lockHint').textContent = 'Ek hi click mein — saara data sync ho jaayega';
+      if (!isViewMode) {
+        document.getElementById('lockScreen').classList.remove('hidden');
+        document.getElementById('loginLoader').style.display = 'none';
+        document.getElementById('googleSignInBtn').style.display = 'flex';
+        document.getElementById('lockHint').textContent = 'Ek hi click mein — saara data sync ho jaayega';
+      }
     }
   });
 
@@ -2472,6 +2521,193 @@
     '</div></body></html>';
 
     if (safeOpenWindow(html, '❌ Invoice open nahi ho saka! Popup allow karo.')) showToast('🖨️ '+loan.name+' ka Professional Invoice ready!');
+  }
+
+  // ===== SHARE KHATA (Read-Only) =====
+  function openShare() {
+    if (!currentUser) { showToast('❌ Pehle login karo!'); return; }
+    // Firebase mein public read allow karo is user ke liye
+    var shareRef = fbDb.ref('shared/' + currentUser.uid);
+    shareRef.set({ active: true, ownerName: (getProfile() || {}).name || currentUser.displayName });
+
+    var shareUrl = window.location.origin + window.location.pathname + '?view=' + currentUser.uid;
+    document.getElementById('shareLinkInput').value = shareUrl;
+    document.getElementById('shareOverlay').classList.add('show');
+  }
+
+  function copyShareLink() {
+    var inp = document.getElementById('shareLinkInput');
+    inp.select();
+    navigator.clipboard.writeText(inp.value).then(function() {
+      showToast('✅ Link copy ho gaya!');
+    }).catch(function() {
+      document.execCommand('copy');
+      showToast('✅ Link copy ho gaya!');
+    });
+  }
+
+  function shareViaWA() {
+    var link = document.getElementById('shareLinkInput').value;
+    var profile = getProfile();
+    var name = profile ? profile.name : (currentUser ? currentUser.displayName : 'Udhar Khata');
+    var msg = '👀 *' + name + ' ka Udhar Khata dekho:*\n' + link + '\n\n_Sirf dekhne ke liye — edit nahi hoga_';
+    window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
+  }
+
+  // View mode — URL mein ?view=UID ho toh kisi aur ka data dikhao (read-only)
+  var VIEW_UID = new URLSearchParams(window.location.search).get('view');
+  var isViewMode = !!VIEW_UID;
+
+  if (isViewMode) {
+    // Read-only mode — login bypass, seedha public data load karo
+    document.addEventListener('DOMContentLoaded', function() {});
+    fbAuth.onAuthStateChanged(function() {}); // override default listener nahi karna
+    document.getElementById('lockScreen').classList.add('hidden');
+
+    fbDb.ref('users/' + VIEW_UID + '/khata').once('value', function(snap) {
+      var rec = snap.val();
+      if (!rec) { document.body.innerHTML = '<div style="text-align:center;padding:60px;color:#fff;font-size:1.1rem">❌ Khata nahi mila ya share expired ho gaya.</div>'; return; }
+      loans = safeArr(rec.loans).map(sanitizeLoan).filter(Boolean);
+      bin = [];
+      if (rec.profile) saveProfile(rec.profile);
+      renderAll(); updateOwnerDisplay();
+
+      // View mode banner
+      var banner = document.createElement('div');
+      banner.style.cssText = 'position:fixed;top:0;left:0;right:0;background:#f0a500;color:#000;text-align:center;padding:8px;font-weight:800;font-size:0.85rem;z-index:9998';
+      banner.textContent = '👁️ Read-Only Mode — Sirf Dekhne Ke Liye';
+      document.body.prepend(banner);
+
+      // Edit buttons disable karo
+      document.querySelectorAll('button[onclick*="addLoan"], button[onclick*="openForm"]').forEach(function(b){ b.style.display='none'; });
+    });
+  }
+
+  // ===== BROWSER NOTIFICATIONS + WHATSAPP REMINDERS =====
+  function openNotifSettings() {
+    var statusBox = document.getElementById('notifStatusBox');
+    var enableBtn = document.getElementById('notifEnableBtn');
+    var perm = Notification.permission;
+
+    if (perm === 'granted') {
+      statusBox.style.background = 'rgba(63,185,80,0.1)';
+      statusBox.style.border = '1px solid rgba(63,185,80,0.3)';
+      statusBox.style.color = 'var(--green)';
+      statusBox.textContent = '✅ Notifications ON hain!';
+      enableBtn.style.display = 'none';
+    } else if (perm === 'denied') {
+      statusBox.style.background = 'rgba(248,81,73,0.1)';
+      statusBox.style.border = '1px solid rgba(248,81,73,0.3)';
+      statusBox.style.color = 'var(--red)';
+      statusBox.textContent = '❌ Notifications blocked hain — browser settings mein jaake allow karo';
+      enableBtn.style.display = 'none';
+    } else {
+      statusBox.style.background = 'rgba(240,165,0,0.1)';
+      statusBox.style.border = '1px solid rgba(240,165,0,0.3)';
+      statusBox.style.color = 'var(--accent)';
+      statusBox.textContent = '⚠️ Notifications abhi OFF hain — neeche button click karo';
+      enableBtn.style.display = 'block';
+    }
+
+    // Aaj due / overdue list dikhao
+    renderDueList();
+    document.getElementById('notifOverlay').classList.add('show');
+  }
+
+  function renderDueList() {
+    var list = document.getElementById('notifDueList');
+    var todayLoans = [];
+    loans.forEach(function(loan) {
+      loan.emis.forEach(function(emi) {
+        if (!emi.paid && (emi.dueDate === today || emi.dueDate < today)) {
+          todayLoans.push({ loan: loan, emi: emi, overdue: emi.dueDate < today });
+        }
+      });
+    });
+
+    if (todayLoans.length === 0) {
+      list.innerHTML = '<div style="text-align:center;color:var(--green);padding:12px;font-size:0.85rem;font-weight:700">🎉 Aaj koi due nahi!</div>';
+      return;
+    }
+
+    list.innerHTML = todayLoans.map(function(item) {
+      var color = item.overdue ? 'var(--red)' : 'var(--accent)';
+      var tag = item.overdue ? '🔴 OVERDUE' : '⚠️ DUE TODAY';
+      return '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:8px">' +
+        '<div>' +
+          '<div style="font-weight:800;font-size:0.88rem;color:var(--text)">' + esc(item.loan.name) + '</div>' +
+          '<div style="font-size:0.75rem;color:' + color + ';font-weight:700">' + tag + ' · ' + fmt(item.emi.amount) + '</div>' +
+        '</div>' +
+        (item.loan.phone ? '<button onclick="sendWhatsApp(' + item.loan.id + ')" style="background:rgba(37,211,102,0.12);border:1px solid rgba(37,211,102,0.35);color:#25d366;border-radius:8px;padding:7px 12px;font-size:0.78rem;font-weight:700;cursor:pointer;font-family:inherit">📱 WA</button>' : '') +
+      '</div>';
+    }).join('');
+  }
+
+  function enableNotifications() {
+    Notification.requestPermission().then(function(perm) {
+      if (perm === 'granted') {
+        showToast('✅ Notifications ON! Kal se reminders milenge.');
+        openNotifSettings(); // refresh
+        scheduleNotifications();
+      } else {
+        showToast('❌ Permission nahi mili — browser settings mein allow karo');
+      }
+    });
+  }
+
+  function scheduleNotifications() {
+    if (Notification.permission !== 'granted') return;
+    var tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1);
+    var tomorrowStr = tomorrow.toISOString().split('T')[0];
+
+    loans.forEach(function(loan) {
+      loan.emis.forEach(function(emi) {
+        if (emi.paid) return;
+
+        // Aaj due
+        if (emi.dueDate === today) {
+          sendLocalNotif(
+            '⚠️ EMI Due Today — ' + loan.name,
+            fmt(emi.amount) + ' aaj dena hai! Click karo WA bhejne ke liye.',
+            loan.id
+          );
+        }
+        // Kal due
+        if (emi.dueDate === tomorrowStr) {
+          sendLocalNotif(
+            '📅 Kal EMI Due — ' + loan.name,
+            fmt(emi.amount) + ' kal dena hai. Abhi remind karo!',
+            loan.id
+          );
+        }
+      });
+    });
+  }
+
+  function sendLocalNotif(title, body, loanId) {
+    if (Notification.permission !== 'granted') return;
+    var notif = new Notification(title, {
+      body: body,
+      icon: 'https://udharbook.online/icon-192.png',
+      badge: 'https://udharbook.online/icon-192.png',
+      tag: 'emi-' + loanId,
+      requireInteraction: true
+    });
+    notif.onclick = function() {
+      window.focus();
+      var loan = loans.find(function(l){ return l.id === loanId; });
+      if (loan && loan.phone) {
+        sendWhatsApp(loanId);
+      }
+      notif.close();
+    };
+  }
+
+  // Har login ke baad + page load pe notifications check karo
+  function checkAndNotify() {
+    if (Notification.permission === 'granted' && !isViewMode) {
+      setTimeout(scheduleNotifications, 3000);
+    }
   }
 
   // ===== CLOUD SETUP FUNCTIONS =====
