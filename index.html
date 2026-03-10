@@ -1046,7 +1046,8 @@
   var JBIN_ID  = localStorage.getItem('udharKhata_jid') || '';
   var JBIN_URL = 'https://api.jsonbin.io/v3/b/' + JBIN_ID;
   var cloudSyncTimer = null;
-  var isSyncing = false;
+  var isSaving  = false;
+  var isLoading = false;
   var lastCloudSync = null;
 
   function showSyncStatus(msg, color) {
@@ -1064,28 +1065,31 @@
     showSyncStatus('☁️ Saving...', 'var(--accent)');
   }
 
+  var isSaving  = false; // save flag alag
+  var isLoading = false; // load flag alag
+
   function cloudSave(showMsg) {
     if (!JBIN_KEY || !JBIN_ID) { if(showMsg) showToast('⚠️ Cloud sync setup nahi hai!'); return; }
-    if (isSyncing) return;
-    isSyncing = true;
+    if (isSaving) return;
+    isSaving = true;
     showSyncStatus('☁️ Syncing...', 'var(--accent)');
 
-    // Pehle cloud ka latest data lao, merge karo, PHIR save karo
-    fetch(JBIN_URL + '/latest', { headers: { 'X-Access-Key': JBIN_KEY } })
+    // Cache bust — har baar fresh data aaye
+    fetch(JBIN_URL + '/latest?cb=' + Date.now(), {
+      headers: { 'X-Access-Key': JBIN_KEY, 'Cache-Control': 'no-cache' }
+    })
     .then(function(r) { return r.ok ? r.json() : { record: null }; })
     .then(function(data) {
       var rec = data.record;
-      // Cloud se merge karo — dono devices ki entries bachao
       if (rec && rec.loans) {
         var cloudLoans = safeArr(rec.loans).map(sanitizeLoan).filter(Boolean);
         var cloudBin   = safeArr(rec.bin).map(sanitizeLoan).filter(Boolean);
-        loans = mergeById(cloudLoans, loans); // local wins on conflict (local is latest change)
+        loans = mergeById(cloudLoans, loans);
         bin   = mergeById(cloudBin, bin);
         localStorage.setItem(STORAGE_KEY, JSON.stringify(loans));
         localStorage.setItem(BIN_KEY, JSON.stringify(bin));
         renderAll(); updateBinBadge();
       }
-      // Ab merged data cloud pe save karo
       var payload = {
         loans: loans, bin: bin,
         savedAt: new Date().toLocaleString('en-IN'),
@@ -1095,49 +1099,52 @@
       };
       return fetch(JBIN_URL, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json', 'X-Access-Key': JBIN_KEY },
+        headers: { 'Content-Type': 'application/json', 'X-Access-Key': JBIN_KEY, 'Cache-Control': 'no-cache' },
         body: JSON.stringify(payload)
       });
     })
     .then(function(r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
     .then(function() {
-      isSyncing = false;
+      isSaving = false;
       lastCloudSync = Date.now();
       showSyncStatus('✅ Synced ' + new Date().toLocaleTimeString('en-IN', {hour:'2-digit', minute:'2-digit'}), 'var(--green)');
       if (showMsg) showToast('☁️ Cloud sync ho gaya!');
       setTimeout(function(){ showSyncStatus('☁️ Cloud Sync ON', 'var(--green)'); }, 3000);
     })
     .catch(function(err) {
-      isSyncing = false;
+      isSaving = false;
       showSyncStatus('⚠️ Sync failed — retry ho raha hai', 'var(--red)');
       setTimeout(function(){ if(JBIN_KEY && JBIN_ID) cloudSave(false); }, 10000);
       console.error('Cloud save error:', err);
     });
   }
 
-  // ID-based smart merge — cloud entry wins on same ID
-  function mergeById(localArr, cloudArr) {
+  // ID-based smart merge — second array wins on same ID
+  function mergeById(firstArr, secondArr) {
     var map = {};
-    safeArr(localArr).forEach(function(l){ if(l && l.id) map[l.id] = l; });
-    safeArr(cloudArr).forEach(function(l){ if(l && l.id) map[l.id] = l; }); // cloud override
+    safeArr(firstArr).forEach(function(l){ if(l && l.id) map[l.id] = l; });
+    safeArr(secondArr).forEach(function(l){ if(l && l.id) map[l.id] = l; });
     return Object.values(map).sort(function(a,b){ return (a.id||0)-(b.id||0); });
   }
 
   function cloudLoad() {
     if (!JBIN_KEY || !JBIN_ID) { showSyncStatus('☁️ Cloud Sync OFF', 'var(--muted)'); return; }
-    showSyncStatus('☁️ Syncing...', 'var(--accent)');
-    fetch(JBIN_URL + '/latest', {
-      headers: { 'X-Access-Key': JBIN_KEY }
+    if (isLoading) return;
+    isLoading = true;
+
+    // Cache bust — fresh data aaye hamesha
+    fetch(JBIN_URL + '/latest?cb=' + Date.now(), {
+      headers: { 'X-Access-Key': JBIN_KEY, 'Cache-Control': 'no-cache' }
     })
     .then(function(r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
     .then(function(data) {
+      isLoading = false;
       var rec = data.record;
       if (!rec) { showSyncStatus('☁️ Cloud Sync ON', 'var(--green)'); return; }
 
       var cloudLoans = safeArr(rec.loans).map(sanitizeLoan).filter(Boolean);
       var cloudBin   = safeArr(rec.bin).map(sanitizeLoan).filter(Boolean);
 
-      // Smart merge by ID
       var mergedLoans = mergeById(loans, cloudLoans);
       var mergedBin   = mergeById(bin, cloudBin);
 
@@ -1146,10 +1153,7 @@
       localStorage.setItem(STORAGE_KEY, JSON.stringify(loans));
       localStorage.setItem(BIN_KEY, JSON.stringify(bin));
 
-      // Profile sync
       if (rec.profile && typeof rec.profile === 'object') saveProfile(rec.profile);
-
-      // Password sync — naya device pe set karo
       if (rec.password) localStorage.setItem(PW_KEY, rec.password);
 
       renderAll(); updateBinBadge(); updateOwnerDisplay();
@@ -1157,17 +1161,18 @@
       lastCloudSync = Date.now();
     })
     .catch(function(err) {
+      isLoading = false;
       showSyncStatus('⚠️ Sync failed', 'var(--red)');
       console.error('Cloud load error:', err);
     });
   }
 
-  // Auto-poll every 15 sec — dono devices sync rehte hain
+  // Auto-poll every 15 sec
   function startCloudPolling() {
     if (!JBIN_KEY || !JBIN_ID) return;
     setInterval(function() {
       var locked = !document.getElementById('lockScreen').classList.contains('hidden');
-      if (!locked && !isSyncing) cloudLoad();
+      if (!locked && !isLoading && !isSaving) cloudLoad();
     }, 15000);
   }
 
