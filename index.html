@@ -1077,19 +1077,23 @@
     if (!SB_URL || !SB_KEY) { if(showMsg) showToast('⚠️ Cloud sync setup nahi hai!'); return; }
     if (isSaving) return;
     isSaving = true;
-    showSyncStatus('☁️ Syncing...', 'var(--accent)');
+    showSyncStatus('☁️ Saving...', 'var(--accent)');
 
-    // Pehle cloud ka data fetch karo, merge karo, phir save
+    // Step 1: Cloud ka latest data fetch karo
     fetch(sbUrl() + '?id=eq.' + SB_ROW_ID, {
       headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY }
     })
     .then(function(r) { return r.ok ? r.json() : []; })
     .then(function(rows) {
-      if (rows && rows.length > 0) {
+      var rowExists = rows && rows.length > 0;
+
+      // Step 2: Pehle cloud ka data merge karo (cloud + local)
+      if (rowExists) {
         try {
           var rec = JSON.parse(rows[0].data);
           var cloudLoans = safeArr(rec.loans).map(sanitizeLoan).filter(Boolean);
           var cloudBin   = safeArr(rec.bin).map(sanitizeLoan).filter(Boolean);
+          // Local wins (local = abhi jo naya save ho raha hai)
           loans = mergeById(cloudLoans, loans);
           bin   = mergeById(cloudBin, bin);
           localStorage.setItem(STORAGE_KEY, JSON.stringify(loans));
@@ -1097,6 +1101,8 @@
           renderAll(); updateBinBadge();
         } catch(e) {}
       }
+
+      // Step 3: Merged data Supabase pe save karo
       var payload = JSON.stringify({
         loans: loans, bin: bin,
         savedAt: new Date().toLocaleString('en-IN'),
@@ -1104,15 +1110,28 @@
         profile: getProfile(),
         password: localStorage.getItem(PW_KEY) || '1234'
       });
-      // Upsert — row hai toh update, nahi hai toh insert
-      return fetch(sbUrl(), {
-        method: 'POST',
-        headers: Object.assign({}, sbHeaders(), { 'Prefer': 'resolution=merge-duplicates,return=minimal' }),
-        body: JSON.stringify({ id: SB_ROW_ID, data: payload })
-      });
+
+      if (rowExists) {
+        return fetch(sbUrl() + '?id=eq.' + SB_ROW_ID, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json', 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Prefer': 'return=minimal' },
+          body: JSON.stringify({ data: payload })
+        });
+      } else {
+        return fetch(sbUrl(), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Prefer': 'return=minimal' },
+          body: JSON.stringify({ id: SB_ROW_ID, data: payload })
+        });
+      }
     })
     .then(function(r) {
       isSaving = false;
+      if (!r || !r.ok) {
+        showSyncStatus('⚠️ Save failed', 'var(--red)');
+        setTimeout(function(){ if(SB_URL && SB_KEY) cloudSave(false); }, 10000);
+        return;
+      }
       lastCloudSync = Date.now();
       showSyncStatus('✅ Synced ' + new Date().toLocaleTimeString('en-IN', {hour:'2-digit', minute:'2-digit'}), 'var(--green)');
       if (showMsg) showToast('☁️ Cloud sync ho gaya!');
@@ -1120,9 +1139,9 @@
     })
     .catch(function(err) {
       isSaving = false;
+      console.error('Cloud save error:', err);
       showSyncStatus('⚠️ Sync failed', 'var(--red)');
       setTimeout(function(){ if(SB_URL && SB_KEY) cloudSave(false); }, 10000);
-      console.error('Cloud save error:', err);
     });
   }
 
@@ -1130,18 +1149,27 @@
     if (!SB_URL || !SB_KEY) { showSyncStatus('☁️ Cloud Sync OFF', 'var(--muted)'); return; }
     if (isLoading) return;
     isLoading = true;
+
     fetch(sbUrl() + '?id=eq.' + SB_ROW_ID, {
       headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY }
     })
-    .then(function(r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+    .then(function(r) {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    })
     .then(function(rows) {
       isLoading = false;
-      if (!rows || rows.length === 0) { showSyncStatus('☁️ Cloud Sync ON', 'var(--green)'); return; }
+      if (!rows || rows.length === 0) {
+        showSyncStatus('☁️ Cloud Sync ON', 'var(--green)');
+        return;
+      }
       var rec = JSON.parse(rows[0].data);
       var cloudLoans = safeArr(rec.loans).map(sanitizeLoan).filter(Boolean);
       var cloudBin   = safeArr(rec.bin).map(sanitizeLoan).filter(Boolean);
-      loans = mergeById(loans, cloudLoans);
-      bin   = mergeById(bin, cloudBin);
+
+      // Cloud is truth — sirf woh entries add karo jo abhi locally add hui hain cloud ke baad
+      loans = mergeById(cloudLoans, loans); // cloud pehle, local baad (local ke naye ID jud jaate hain)
+      bin   = mergeById(cloudBin, bin);
       localStorage.setItem(STORAGE_KEY, JSON.stringify(loans));
       localStorage.setItem(BIN_KEY, JSON.stringify(bin));
       if (rec.profile && typeof rec.profile === 'object') saveProfile(rec.profile);
@@ -1152,8 +1180,8 @@
     })
     .catch(function(err) {
       isLoading = false;
-      showSyncStatus('⚠️ Sync failed', 'var(--red)');
       console.error('Cloud load error:', err);
+      showSyncStatus('⚠️ Load failed: ' + err.message, 'var(--red)');
     });
   }
 
@@ -1372,6 +1400,13 @@
     if (input === getPassword()) {
       document.getElementById('lockScreen').classList.add('hidden');
       document.getElementById('lockInput').value = '';
+      // isLoading reset karo — force fresh cloud fetch on unlock
+      if (SB_URL && SB_KEY) {
+        isLoading = false;
+        isSaving = false;
+        showSyncStatus('☁️ Syncing...', 'var(--accent)');
+        cloudLoad();
+      }
     } else {
       var el = document.getElementById('lockInput');
       el.classList.add('wrong');
